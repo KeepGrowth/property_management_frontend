@@ -1,38 +1,173 @@
-# property-management-frontend-new
+# 小区物业管理系统 - 前端工程
 
-This template should help get you started developing with Vue 3 in Vite.
+## 项目简介
 
-## Recommended IDE Setup
+本项目是为小区物业管理场景量身打造的现代化前端解决方案，基于 Vue3 生态体系构建，适配业主、物业、管理员三类角色的核心业务需求。系统以**高效、易用、可扩展**为设计原则，覆盖报修管理、费用缴纳、房屋管理、公告发布等全流程物业业务。
+> 商业定制项目请联系|微信:traffic_zhang|QQ:3287541490
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+> 开源项目博客官网:http://859707243.xyz:8090
 
-## Recommended Browser Setup
+## 核心优势
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+### 1. 技术架构
 
-## Customize configuration
+采用 Vue3 + Vite 构建，结合 Composition API 实现组件逻辑复用，相比传统 Vue2 项目性能提升 30%+；基于 Element Plus + TailwindCSS 实现响应式布局，适配 PC 端全尺寸屏幕，兼顾操作效率与视觉体验。
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+### 2. 全角色业务覆盖
 
-## Project Setup
+- **业主端**：账单查询、在线报修、公告查看、个人信息管理
 
-```sh
-pnpm install
+- **物业端**：房屋管理、账单生成、报修派单、公告发布
+
+- 管理员端：人员权限管理、系统配置
+
+  全流程覆盖小区物业核心业务，无需额外定制即可满足 80% 以上的小区管理需求。
+
+### 3. 安全可靠的鉴权体系
+
+基于 JWT + 路由拦截实现身份认证与权限控制，不同角色仅可访问对应权限模块，保障数据安全；请求拦截器统一处理 Token 校验与刷新，降低接口调用异常率。
+
+### 4. 可扩展的工程架构
+
+模块化目录设计、标准化接口规范，支持业务模块快速扩展（如停车管理、访客登记等），满足不同小区的定制化需求。
+
+## 技术栈
+
+| 类别       | 技术选型                  | 核心作用                                                     |
+| :--------- | :------------------------ | :----------------------------------------------------------- |
+| 构建工具   | Vite 5.x                  | 极速热更新、按需编译，提升开发效率与生产环境构建速度         |
+| 核心框架   | Vue 3.x (Composition API) | 前端核心框架，实现组件化开发与逻辑复用                       |
+| UI 组件库  | Element Plus              | 提供表单、表格、弹窗等高频业务组件，降低开发成本             |
+| 样式方案   | TailwindCSS 3.x           | 原子化 CSS 方案，快速实现定制化样式，减少冗余代码            |
+| 状态管理   | Pinia 2.x                 | 替代 Vuex，轻量化管理全局状态（用户信息、权限标识等）        |
+| 路由管理   | Vue Router 4.x            | 实现路由嵌套、权限路由、路由守卫，管控页面访问逻辑           |
+| 网络请求   | Axios 1.x                 | 封装 HTTP 请求，统一处理请求 / 响应拦截、错误处理、Token 携带 |
+| 数据可视化 | ECharts 5.x               | 实现首页数据大屏（缴费统计、报修类型分析等），提升数据展示价值 |
+
+## 快速开始
+
+### 环境要求
+
+- Node.js ≥ 16.0.0
+- npm ≥ 7.0.0 或 yarn ≥ 1.22.0
+
+### 安装与启动
+
+```
+# 克隆代码
+git clone [项目仓库地址]
+
+# 进入项目目录
+cd property-management-frontend
+
+# 安装依赖
+npm install
+# 或使用yarn
+yarn install
+
+# 本地开发启动（默认端口：3000）
+npm run dev
+# 或
+yarn dev
+
+# 生产环境构建
+npm run build
+# 或
+yarn build
+
+# 构建产物预览
+npm run preview
+# 或
+yarn preview
 ```
 
-### Compile and Hot-Reload for Development
+### 环境配置
 
-```sh
-pnpm dev
+在项目根目录创建 `.env` 文件，配置后端接口地址等核心参数：
+
+```
+# 开发环境
+VITE_API_BASE_URL = 'http://localhost:8080/api/v1'
+# Token 存储键名
+VITE_TOKEN_KEY = 'property_admin_token'
+# 超时时间
+VITE_REQUEST_TIMEOUT = 10000
 ```
 
-### Compile and Minify for Production
+## 项目结构
 
-```sh
-pnpm build
 ```
+src/
+├── api/                # 接口封装目录（按业务模块拆分）
+│   ├── auth.js         # 登录鉴权相关接口
+│   ├── fee.js          # 缴费账单相关接口
+│   ├── repair.js       # 报修相关接口
+│   └── index.js        # 接口统一导出
+├── assets/             # 静态资源（图片、样式、图标等）
+├── components/         # 全局公共组件
+│   ├── Layout/         # 布局组件（侧边栏、顶部导航、主容器）
+│   ├── Form/           # 表单公共组件
+│   └── Table/          # 表格公共组件
+├── router/             # 路由配置
+│   ├── index.js        # 路由入口（含权限路由映射）
+│   └── routes.js       # 路由规则定义
+├── store/              # Pinia 状态管理
+│   ├── user.js         # 用户信息/权限状态
+│   └── index.js        # 状态管理入口
+├── styles/             # 全局样式
+│   ├── tailwind.css    # TailwindCSS 入口
+│   └── global.css      # 全局自定义样式
+├── utils/              # 工具函数
+│   ├── request.js      # Axios 封装
+│   ├── auth.js         # Token 操作工具
+│   └── format.js       # 数据格式化工具
+├── views/              # 业务页面（按角色拆分）
+│   ├── Home/           # 首页/工作台
+│   ├── Login/          # 登录页
+│   ├── Admin/          # 管理员模块
+│   ├── Property/       # 物业模块
+│   └── Owner/          # 业主模块
+├── App.vue             # 根组件
+└── main.js             # 入口文件
+```
+
+## 核心功能模块
+
+### 1. 登录鉴权
+
+- 多角色统一登录入口，根据用户类型自动跳转对应工作台
+- JWT Token 本地存储 + 请求头自动携带，实现无状态鉴权
+- 路由守卫拦截未登录访问，权限路由自动过滤无权限页面
+
+### 2. 业主核心功能
+
+| 功能模块 | 核心能力                                                 |
+| :------- | :------------------------------------------------------- |
+| 我的账单 | 查看待缴 / 已缴账单、模拟在线缴费、账单详情查看          |
+| 我的报修 | 提交报修申请（支持图片上传）、查看报修进度、评价维修服务 |
+| 公告查看 | 按时间 / 类型筛选小区公告、查看公告详情                  |
+| 个人中心 | 修改个人信息、重置密码                                   |
+
+### 3. 物业核心功能表
+
+| 功能模块 | 核心能力                                        |
+| :------- | :---------------------------------------------- |
+| 房屋管理 | 小区房屋信息增删改查、业主关联管理              |
+| 账单管理 | 批量 / 单个生成缴费账单、查看缴费状态、导出账单 |
+| 报修处理 | 报修单分配、维修进度更新、处理结果反馈          |
+| 公告管理 | 发布 / 编辑 / 下架小区公告、按类型分类管理      |
+
+### 4. 管理员核心功能
+
+| 功能模块 | 核心能力                                     |
+| :------- | :------------------------------------------- |
+| 用户管理 | 物业人员账号增删改查、角色权限配置、状态管控 |
+
+### 5. 数据可视化
+
+首页集成 ECharts 可视化图表，支持：
+
+- 月度缴费金额 / 户数统计（柱状图）
+- 报修类型分布统计（饼图）
+- 账单缴费率趋势（折线图）
+- 小区房屋入住率统计（环形图）
