@@ -93,8 +93,8 @@ onMounted(() => {
             class="w-40"
           />
         </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="queryParams.status" placeholder="全部状态" class="w-32">
+        <el-form-item label="状态" style="width: 200px">
+          <el-select v-model="queryParams.status" placeholder="全部状态" class="w-32" >
             <el-option label="已缴" value="2" />
             <el-option label="未缴" value="1" />
           </el-select>

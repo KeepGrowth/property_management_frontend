@@ -6,13 +6,12 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 
 // --- 1. 数据定义 ---
 const userStore = useUserStore()
-const userInfo = ref({ ...userStore.currentUser }) // 从 Pinia 获取用户信息
+const userInfo = ref({ ...userStore.userInfo }) // 从 Pinia 获取用户信息
 
 // 表单数据
 const form = reactive({
-  realName: '',
+  real_name: '',
   phone: '',
-  email: ''
 })
 
 // 密码表单
@@ -74,7 +73,7 @@ const submitPassword = () => {
 // --- 3. 生命周期 ---
 onMounted(() => {
   // 初始化表单数据
-  form.realName = userInfo.value.realName || ''
+  form.real_name = userInfo.value.realName || ''
   form.phone = userInfo.value.phone || ''
   form.email = userInfo.value.email || ''
 })
@@ -107,7 +106,7 @@ onMounted(() => {
             </el-form-item>
 
             <el-form-item label="真实姓名">
-              <el-input v-model="form.realName" placeholder="请输入姓名" class="w-full" clearable>
+              <el-input v-model="form.real_name" :placeholder="userInfo.real_name" class="w-full" clearable>
                 <template #prefix>
                   <User class="text-gray-400" />
                 </template>
@@ -115,7 +114,7 @@ onMounted(() => {
             </el-form-item>
 
             <el-form-item label="手机号">
-              <el-input v-model="form.phone" placeholder="请输入手机号" type="tel" clearable>
+              <el-input v-model="form.phone" :placeholder="userInfo.phone" type="tel" clearable>
                 <template #prefix>
                   <i class="el-icon-phone text-gray-400"></i>
                 </template>
@@ -123,7 +122,9 @@ onMounted(() => {
             </el-form-item>
 
             <el-form-item label="角色">
-              <el-tag type="success" size="large">{{ userInfo.roleName }}</el-tag>
+              <el-tag type="success" size="large" v-if="userInfo.user_type===1">业主</el-tag>
+              <el-tag type="success" size="large" v-if="userInfo.user_type===2">物业</el-tag>
+              <el-tag type="success" size="large" v-if="userInfo.user_type===3">系统管理员</el-tag>
             </el-form-item>
 
             <el-form-item>
@@ -201,10 +202,7 @@ onMounted(() => {
             <div class="text-lg font-semibold text-gray-700">📊 账户状态</div>
           </template>
           <div class="space-y-3 text-sm">
-            <div class="flex justify-between items-center py-2 border-b border-gray-100">
-              <span class="text-gray-500">上次登录:</span>
-              <span class="font-medium">2026-03-29 08:30:00</span>
-            </div>
+
             <div class="flex justify-between items-center py-2 border-b border-gray-100">
               <span class="text-gray-500">登录IP:</span>
               <span class="font-medium">192.168.1.100</span>

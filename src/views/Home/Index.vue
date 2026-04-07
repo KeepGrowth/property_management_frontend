@@ -5,7 +5,7 @@ import useUserStore from '@/stores/user.js'
 
 // --- 1. 模拟数据 (实际开发中应从 API 获取) ---
 const userStore = useUserStore()
-const currentRole = computed(() => userStore.userInfo?.user_type || 'owner')
+const currentRole = computed(() => userStore.userInfo?.user_type)
 
 // 核心统计数据
 const statsData = ref([
@@ -90,7 +90,8 @@ const initRepairChart = () => {
         <p class="text-gray-500 mt-1">这里是小区物业管理系统工作台</p>
       </div>
       <div class="text-right">
-        <p class="text-sm text-gray-500">当前角色：{{ currentRole === 'owner' ? '业主' : currentRole === 'property' ? '物业' : '管理员' }}</p>
+        <p class="text-sm text-gray-500">当前角色：{{ currentRole === 1 ? '业主' : currentRole === 2 ? '物业' : '管理员'
+          }}</p>
         <p class="text-sm text-gray-500 mt-1">系统时间：{{ new Date().toLocaleString() }}</p>
       </div>
     </div>
@@ -98,7 +99,8 @@ const initRepairChart = () => {
     <!-- 核心快捷入口卡片 -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
       <!-- 待缴费卡片 -->
-      <router-link to="/home/owner/fee" class="block bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300 p-5 border-l-4 border-l-blue-500">
+      <router-link to="/home/owner/fee"
+                   class="block bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300 p-5 border-l-4 border-l-blue-500">
         <div class="flex items-center">
           <div class="p-3 bg-blue-100 rounded-full">
             <i class="el-icon-money text-blue-500 text-2xl"></i>
@@ -111,7 +113,8 @@ const initRepairChart = () => {
       </router-link>
 
       <!-- 待报修卡片 -->
-      <router-link to="/home/owner/repair" class="block bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300 p-5 border-l-4 border-l-green-500">
+      <router-link to="/home/owner/repair"
+                   class="block bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300 p-5 border-l-4 border-l-green-500">
         <div class="flex items-center">
           <div class="p-3 bg-green-100 rounded-full">
             <i class="el-icon-s-opportunity text-green-500 text-2xl"></i>
@@ -124,7 +127,8 @@ const initRepairChart = () => {
       </router-link>
 
       <!-- 公告卡片 -->
-      <router-link to="/home/owner/notice" class="block bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300 p-5 border-l-4 border-l-purple-500">
+      <router-link to="/home/owner/notice"
+                   class="block bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300 p-5 border-l-4 border-l-purple-500">
         <div class="flex items-center">
           <div class="p-3 bg-purple-100 rounded-full">
             <i class="el-icon-s-order text-purple-500 text-2xl"></i>
@@ -143,7 +147,8 @@ const initRepairChart = () => {
       <div class="lg:col-span-1 space-y-4">
         <h2 class="text-xl font-semibold text-gray-800 mb-4">核心数据</h2>
 
-        <div v-for="(stat, index) in statsData" :key="index" class="bg-white rounded-lg shadow p-4 flex items-center transition-transform hover:scale-105 duration-200">
+        <div v-for="(stat, index) in statsData" :key="index"
+             class="bg-white rounded-lg shadow p-4 flex items-center transition-transform hover:scale-105 duration-200">
           <div :class="`${stat.color} p-3 rounded-full text-white text-xl`">
             {{ stat.icon }}
           </div>

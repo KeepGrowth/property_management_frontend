@@ -66,14 +66,14 @@ const fetchList = () => {
 
 // 重置搜索
 const handleReset = () => {
-  searchForm.value = { username: '', realName: '', userType: '' }
+  searchForm.value = { username: '', real_name: '', userType: '' }
   fetchList()
 }
 
 // 打开新增弹窗
 const handleAdd = () => {
   isEdit.value = false
-  formData.value = { id: null, username: '', realName: '', phone: '', userType: '1', status: '1' }
+  formData.value = { id: null, username: '', real_name: '', phone: '', userType: '1', status: '1' }
   dialogVisible.value = true
 }
 

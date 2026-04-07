@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElForm, ElFormItem, ElInput, ElTabs, ElTabPane, ElButton, ElLink, ElMessage } from 'element-plus'
 import { Lock, User } from '@element-plus/icons-vue'
+import useUserStore from '@/stores/user'
 
 // 定义表单数据类型
 interface LoginForm {
@@ -32,18 +33,21 @@ const registerForm = ref<LoginForm>({
   confirmPassword: ''
 })
 
+const userStore = useUserStore()
 // 模拟登录逻辑
 const handleLogin = () => {
-  loginFormRef.value?.validate((valid) => {
+  loginFormRef.value?.validate(async (valid) => {
     if (valid) {
       loading.value = true
-      // 这里模拟 API 请求
-      setTimeout(() => {
+      const res = await userStore.login(loginForm.value)
+      if (res?.data?.code === 200) {
         loading.value = false
         ElMessage.success('登录成功！')
-        // 模拟跳转到首页 (实际开发中这里会处理 Token)
-        router.push('/home/admin/user')
-      }, 800)
+        router.push('/home/index')
+      } else {
+        ElMessage.error('登录失败,请检查账号密码')
+        loading.value = false
+      }
     } else {
       ElMessage.error('请检查输入信息')
     }
@@ -93,7 +97,8 @@ const registerRules = {
 <template>
   <div class="flex min-h-screen bg-gray-50">
     <!-- 左侧宣传栏 -->
-    <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-500 to-cyan-400 items-center justify-center p-12">
+    <div
+      class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-500 to-cyan-400 items-center justify-center p-12">
       <div class="text-white text-center max-w-md">
         <h1 class="text-4xl font-bold mb-4">小区物业管理系统</h1>
         <p class="text-xl mb-8">智慧社区，便捷生活</p>
