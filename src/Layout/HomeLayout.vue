@@ -115,7 +115,7 @@ const breadcrumbList = computed(() => {
               <el-icon>
                 <House />
               </el-icon>
-              <span>物业管理</span>
+              <span>系统管理</span>
             </template>
             <el-menu-item index="/home/admin/user">系统用户管理</el-menu-item>
           </el-sub-menu>

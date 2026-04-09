@@ -12,8 +12,8 @@ const currentBillId = ref(null)
 
 // 筛选条件
 const queryParams = ref({
-  billNo: '',
-  status: '',
+  bill_no: '',
+  bill_status: '',
   pageNum: 1,
   pageSize: 10
 })
@@ -26,11 +26,11 @@ const fetchData = () => {
     // 生成模拟数据
     const mockData = Array.from({ length: 15 }, (_, i) => ({
       id: i + 1 + (queryParams.value.pageNum - 1) * queryParams.value.pageSize,
-      billNo: `BILL${new Date().getFullYear()}${String(1000 + i).slice(-4)}`,
+      bill_no: `BILL${new Date().getFullYear()}${String(1000 + i).slice(-4)}`,
       houseId: 'A栋 1001室',
-      feeType: i % 3 === 0 ? '物业费' : i % 3 === 1 ? '电费' : '水费',
-      feeAmount: (Math.random() * 500 + 50).toFixed(2),
-      billStatus: i % 4 === 0 ? 1 : 2, // 1:未缴, 2:已缴
+      fee_type: i % 3 === 0 ? '物业费' : i % 3 === 1 ? '电费' : '水费',
+      fee_amount: (Math.random() * 500 + 50).toFixed(2),
+      bill_status: i % 4 === 0 ? 1 : 2, // 1:未缴, 2:已缴
       createTime: new Date().toLocaleString()
     }))
     feeList.value = mockData
@@ -87,14 +87,14 @@ onMounted(() => {
       <el-form :inline="true" :model="queryParams" class="flex flex-wrap gap-2 items-center justify-center">
         <el-form-item label="账单号">
           <el-input
-            v-model="queryParams.billNo"
+            v-model="queryParams.bill_no"
             placeholder="请输入账单号"
             :prefix-icon="Search"
             class="w-40"
           />
         </el-form-item>
         <el-form-item label="状态" style="width: 200px">
-          <el-select v-model="queryParams.status" placeholder="全部状态" class="w-32" >
+          <el-select v-model="queryParams.bill_status" placeholder="全部状态" class="w-32" >
             <el-option label="已缴" value="2" />
             <el-option label="未缴" value="1" />
           </el-select>
@@ -122,40 +122,40 @@ onMounted(() => {
         <el-table-column type="index" label="序号" width="60" align="center" />
 
         <!-- 核心数据列 -->
-        <el-table-column prop="billNo" label="账单编号" width="180">
+        <el-table-column prop="bill_no" label="账单编号" width="180">
           <template #default="{ row }">
-            <div class="font-mono text-sm text-blue-600">#{{ row.billNo }}</div>
+            <div class="font-mono text-sm text-blue-600">#{{ row.bill_no }}</div>
           </template>
         </el-table-column>
 
         <el-table-column prop="houseId" label="房屋信息" width="120" />
 
-        <el-table-column prop="feeType" label="费用类型" width="100">
+        <el-table-column prop="fee_type" label="费用类型" width="100">
           <template #default="{ row }">
             <el-tag
-              :type="row.feeType === '物业费' ? 'success' : row.feeType === '电费' ? 'warning' : 'danger'"
+              :type="row.fee_type === '物业费' ? 'success' : row.fee_type === '电费' ? 'warning' : 'danger'"
               effect="light"
             >
-              {{ row.feeType }}
+              {{ row.fee_type }}
             </el-tag>
           </template>
         </el-table-column>
 
         <!-- 金额列：使用红色高亮 -->
-        <el-table-column prop="feeAmount" label="金额 (元)" width="120" align="center">
+        <el-table-column prop="fee_amount" label="金额 (元)" width="120" align="center">
           <template #default="{ row }">
-            <span class="text-red-500 font-bold">¥ {{ row.feeAmount }}</span>
+            <span class="text-red-500 font-bold">¥ {{ row.fee_amount }}</span>
           </template>
         </el-table-column>
 
         <!-- 状态列：使用 Tag 区分 -->
-        <el-table-column prop="billStatus" label="状态" width="100" align="center">
+        <el-table-column prop="bill_status" label="状态" width="100" align="center">
           <template #default="{ row }">
             <el-tag
-              :type="row.billStatus === 2 ? 'success' : 'info'"
-              :effect="row.billStatus === 2 ? 'dark' : 'light'"
+              :type="row.bill_status === 2 ? 'success' : 'info'"
+              :effect="row.bill_status === 2 ? 'dark' : 'light'"
             >
-              {{ row.billStatus === 2 ? '已缴清' : '待支付' }}
+              {{ row.bill_status === 2 ? '已缴清' : '待支付' }}
             </el-tag>
           </template>
         </el-table-column>
@@ -167,7 +167,7 @@ onMounted(() => {
           <template #default="{ row }">
             <!-- 仅当状态为“未缴”时显示支付按钮 -->
             <el-button
-              v-if="row.billStatus === 1"
+              v-if="row.bill_status === 1"
               size="small"
               type="success"
               @click="handlePay(row.id)"
@@ -199,7 +199,7 @@ onMounted(() => {
     <el-dialog v-model="dialogVisible" title="模拟支付确认" width="30%">
       <div class="text-center">
         <p class="text-xl font-semibold mb-4 text-gray-700">确认支付该笔账单吗？</p>
-        <p class="text-red-600 font-bold text-2xl mb-6">¥ {{ feeList.find(item => item.id === currentBillId)?.feeAmount || 0 }}</p>
+        <p class="text-red-600 font-bold text-2xl mb-6">¥ {{ feeList.find(item => item.id === currentBillId)?.fee_amount || 0 }}</p>
         <el-button type="primary" size="large" @click="confirmPay" class="w-32">
           确认支付
         </el-button>

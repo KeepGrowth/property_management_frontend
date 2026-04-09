@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { Search, Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 
 // 1. 定义响应式数据
 const loading = ref(false) // 加载状态

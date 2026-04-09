@@ -150,27 +150,13 @@ onMounted(() => {
         <div class="flex justify-between items-center">
           <span class="text-xl font-semibold text-gray-800">账单管理</span>
           <div class="space-x-2">
-            <el-button
-              :icon="Download"
-              @click="handleExport"
-              plain
-            >
-              导出
-            </el-button>
-            <el-button
-              :icon="Plus"
-              type="primary"
-              @click="handleGenerateBills"
-            >
-              生成账单
-            </el-button>
           </div>
         </div>
       </template>
 
       <!-- 搜索表单 -->
       <el-form :inline="true" :model="searchForm" class="flex flex-wrap gap-2" label-width="auto">
-        <el-form-item label="关键词" class="!mb-2">
+        <el-form-item label="关键词">
           <el-input
             v-model="searchForm.keyword"
             placeholder="房号/业主/账单号"
@@ -180,7 +166,7 @@ onMounted(() => {
           />
         </el-form-item>
 
-        <el-form-item label="费用类型" class="!mb-2">
+        <el-form-item label="费用类型" style="width: 200px">
           <el-select v-model="searchForm.feeType" placeholder="全部" clearable class="w-32">
             <el-option
               v-for="item in feeTypes"
@@ -191,7 +177,7 @@ onMounted(() => {
           </el-select>
         </el-form-item>
 
-        <el-form-item label="状态" class="!mb-2">
+        <el-form-item label="状态" style="width: 200px">
           <el-select v-model="searchForm.billStatus" placeholder="全部" clearable >
             <el-option label="已缴" :value="2" />
             <el-option label="未缴" :value="1" />

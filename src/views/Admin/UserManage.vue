@@ -73,7 +73,7 @@ const handleReset = () => {
 // 打开新增弹窗
 const handleAdd = () => {
   isEdit.value = false
-  formData.value = { id: null, username: '', real_name: '', phone: '', userType: '1', status: '1' }
+  formData.value = { id: null, username: '', real_name: '', phone: '', userType: '1', bill_status: '1' }
   dialogVisible.value = true
 }
 

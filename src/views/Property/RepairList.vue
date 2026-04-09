@@ -53,7 +53,7 @@ const fetchList = async () => {
 const handleProcess = (row) => {
   handleForm.value = {
     id: row.id,
-    status: '2',
+    bill_status: '2',
     remark: ''
   }
   dialogVisible.value = true
@@ -140,7 +140,7 @@ const mockData = [
           </el-input>
         </el-form-item>
 
-        <el-form-item label="状态">
+        <el-form-item label="状态" style="width: 200px">
           <el-select v-model="queryParams.status" placeholder="全部" clearable class="w-24">
             <el-option label="待分配" value="1" />
             <el-option label="处理中" value="2" />
