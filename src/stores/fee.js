@@ -6,8 +6,22 @@ import { ElMessage, ElNotification } from 'element-plus'
 import cleanObject from '@/utils/common.js'
 
 export const useFeeStore = defineStore('fee', () => {
-  // 查询某用户的账单列表
+  // 条件查询查询某用户的账单列表
   async function getUserFeeList(params) {
+    try {
+      const clean_params = cleanObject(params)
+      const res = await api.get('/fee-bill/list', { params: clean_params })
+
+      if (res.code === 200) {
+        return res
+      }
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  }
+
+  // 条件查询所有的账单列表
+  async function queryAllFeeList(params) {
     try {
       const clean_params = cleanObject(params)
       const res = await api.get('/fee-bill/list', { params: clean_params })
@@ -38,7 +52,8 @@ export const useFeeStore = defineStore('fee', () => {
 
   return {
     getUserFeeList,
-    payFee
+    payFee,
+    queryAllFeeList
   }
 }, {
   persist: true

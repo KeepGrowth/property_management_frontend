@@ -2,6 +2,8 @@
 import { ref, onMounted } from 'vue'
 import { Search, Refresh, Tickets, Check, Close } from '@element-plus/icons-vue'
 import useUserStore from '@/stores/user.js'
+import useRepairStore from '@/stores/repair.js'
+import { ElMessage, ElNotification } from 'element-plus'
 
 // --- 1. 状态定义 ---
 const userStore = useUserStore()
@@ -10,62 +12,65 @@ const dialogVisible = ref(false) // 控制处理弹窗
 
 // 搜索与分页
 const queryParams = ref({
-  keyword: '',
-  status: '', // 状态筛选：1待分配, 2处理中, 3已完成
-  pageNum: 1,
-  pageSize: 10
+  repairNo: '',
+  repairStatus: null, // 状态筛选：1待分配, 2处理中, 3已完成
 })
 const total = ref(0)
 const repairList = ref([])
 
-// 处理表单 (用于弹窗)
-const handleForm = ref({
-  id: null,
-  status: '2', // 默认改为处理中
-  remark: ''
-})
 
 // 状态映射 (用于展示不同颜色的Tag)
 const statusMap = {
-  1: { label: '待分配', type: 'danger' },
+  1: { label: '待处理', type: 'danger' },
   2: { label: '处理中', type: 'warning' },
   3: { label: '已完成', type: 'success' }
 }
 
 // --- 2. 逻辑方法 ---
-
+const repairStore = useRepairStore()
 // 获取列表数据
 const fetchList = async () => {
   loading.value = true
   try {
-    // 模拟API调用，实际替换为 service 调用
-    const res = await getRepairList(queryParams.value)
-    repairList.value = res.data.list || mockData // 如果接口未好，使用mock数据
-    total.value = res.data.total || mockData.length
+    // API调用
+    const res = await repairStore.queryRepairList(queryParams.value)
+    if (res.code === 200) {
+      repairList.value = res?.data.slice(0, 50)
+      total.value = repairList.value.length
+    } else {
+      ElNotification.error('获取数据失败，请检查网络。')
+      repairList.value = []
+      total.value = 0
+    }
+
   } catch (err) {
-    ElMessage.error('获取报修列表失败')
+    ElMessage.error('获取报修列表失败' + e)
   } finally {
     loading.value = false
   }
 }
 
 // 处理报修 (打开弹窗)
-const handleProcess = (row) => {
-  handleForm.value = {
-    id: row.id,
-    bill_status: '2',
-    remark: ''
+const handleProcess = async (row) => {
+  // 调用API进行处理
+  const res = await repairStore.changeRepairStatus(row.id,2)
+  if (res.code ===200){
+    ElNotification.success('状态已变为正在处理中，请及时处理后点击完成。')
+    await fetchList()
   }
-  dialogVisible.value = true
 }
 
-// 确认处理 (提交表单)
-const submitHandle = async () => {
+// 将状态改为已完成
+const changeToFinish = async (repairId) => {
   try {
-    await updateRepairStatus(handleForm.value)
-    ElMessage.success('处理成功')
-    dialogVisible.value = false
-    fetchList() // 刷新列表
+    // 更改状态
+    const res = await repairStore.changeRepairStatus(repairId, 3)
+    if (res.code === 200) {
+      ElMessage.success('处理成功')
+      dialogVisible.value = false
+      await fetchList() // 刷新列表
+    }
+
   } catch (err) {
     ElMessage.error('处理失败')
   }
@@ -81,11 +86,11 @@ const mockData = [
   {
     id: 1001,
     repairNo: 'BX20240510001',
-    houseInfo: '1栋-502',
+    houseId: '1栋-502',
     applicant: '张三',
     phone: '138****5678',
     type: '水管维修',
-    desc: '厨房水龙头漏水严重，需要更换垫片。',
+    repairDesc: '厨房水龙头漏水严重，需要更换垫片。',
     images: ['https://via.placeholder.com/150'], // 占位图
     status: 1,
     createTime: '2024-05-10 09:15:22'
@@ -93,11 +98,11 @@ const mockData = [
   {
     id: 1002,
     repairNo: 'BX20240510002',
-    houseInfo: '3栋-1201',
+    houseId: '3栋-1201',
     applicant: '李四',
     phone: '139****1234',
     type: '电路故障',
-    desc: '客厅插座没电，疑似跳闸。',
+    repairDesc: '客厅插座没电，疑似跳闸。',
     images: [],
     status: 2,
     createTime: '2024-05-10 10:30:45'
@@ -113,7 +118,8 @@ const mockData = [
       <template #header>
         <div class="flex items-center justify-between">
           <h3 class="text-lg font-semibold text-gray-800 flex items-center">
-            <Tickets class="mr-2 text-blue-500" /> 报修工单管理
+            <Tickets class="mr-2 text-blue-500" />
+            报修管理
           </h3>
           <el-button
             :icon="Refresh"
@@ -129,7 +135,7 @@ const mockData = [
       <el-form :inline="true" :model="queryParams" class="mb-4 flex flex-wrap gap-2">
         <el-form-item>
           <el-input
-            v-model="queryParams.keyword"
+            v-model="queryParams.repairNo"
             placeholder="报修单号/房号/申请人"
             clearable
             class="w-48"
@@ -141,10 +147,10 @@ const mockData = [
         </el-form-item>
 
         <el-form-item label="状态" style="width: 200px">
-          <el-select v-model="queryParams.status" placeholder="全部" clearable class="w-24">
-            <el-option label="待分配" value="1" />
-            <el-option label="处理中" value="2" />
-            <el-option label="已完成" value="3" />
+          <el-select v-model="queryParams.repairStatus" placeholder="全部" clearable class="w-24">
+            <el-option label="待处理" :value="1" />
+            <el-option label="处理中" :value="2" />
+            <el-option label="已完成" :value="3" />
           </el-select>
         </el-form-item>
 
@@ -167,29 +173,28 @@ const mockData = [
         <!-- 报修信息 -->
         <el-table-column prop="repairNo" label="报修单号" width="140" />
 
-        <el-table-column label="房屋/申请人" width="140">
+        <el-table-column label="房屋ID" width="140">
           <template #default="{ row }">
             <div class="text-sm">
-              <div class="font-medium text-gray-800">{{ row.houseInfo }}</div>
-              <div class="text-xs text-gray-500">{{ row.applicant }} ({{ row.phone }})</div>
+              <div class="font-medium text-gray-800">{{ row.houseId }}</div>
             </div>
           </template>
         </el-table-column>
 
-        <el-table-column prop="type" label="报修类型" width="100" />
+        <el-table-column prop="repairType" label="报修类型" width="100" />
 
         <!-- 问题描述 (带Tooltip) -->
-        <el-table-column label="问题描述" min-width="180">
+        <el-table-column label="问题描述">
           <template #default="{ row }">
             <el-popover
               placement="top"
               :width="300"
               trigger="hover"
             >
-              <div class="text-sm whitespace-pre-line">{{ row.desc }}</div>
+              <div class="text-sm whitespace-pre-line">{{ row.repairDesc }}</div>
               <template #reference>
                 <el-tag type="info" effect="plain" size="small" class="cursor-help">
-                  {{ row.desc.length > 20 ? row.desc.slice(0, 20) + '...' : row.desc }}
+                  {{ row.repairDesc.length > 100 ? row.repairDesc.slice(0, 100) + '...' : row.repairDesc }}
                 </el-tag>
               </template>
             </el-popover>
@@ -197,12 +202,12 @@ const mockData = [
         </el-table-column>
 
         <!-- 图片预览 -->
-        <el-table-column label="现场图片" width="100">
+        <el-table-column label="现场图片" width="200">
           <template #default="{ row }">
             <el-image
-              v-if="row.images && row.images.length > 0"
-              :src="row.images[0]"
-              :preview-src-list="row.images"
+              v-if="row.repairImg && row.repairImg.length > 0"
+              :src="row.repairImg"
+              :preview-src-list="row.repairImg"
               fit="cover"
               style="width: 40px; height: 40px; border-radius: 4px;"
               class="cursor-pointer hover:shadow-md transition-shadow"
@@ -215,12 +220,12 @@ const mockData = [
         <el-table-column prop="status" label="状态" width="100" align="center">
           <template #default="{ row }">
             <el-tag
-              :type="statusMap[row.status]?.type"
+              :type="statusMap[row.repairStatus]?.type"
               effect="dark"
               size="default"
               class="px-3 py-1 text-xs font-medium"
             >
-              {{ statusMap[row.status]?.label }}
+              {{ statusMap[row.repairStatus]?.label || '未知' }}
             </el-tag>
           </template>
         </el-table-column>
@@ -230,17 +235,25 @@ const mockData = [
           <template #default="{ row }">
             <!-- 待处理时显示“处理”按钮 -->
             <el-button
-              v-if="row.status == 1 || row.status == 2"
+              v-if="row.repairStatus === 1"
               size="small"
               type="success"
               :icon="Check"
               @click="handleProcess(row)"
-              link
             >
               处理
             </el-button>
             <!-- 已完成显示“已完成”文字 -->
-            <span v-else class="text-green-600 font-medium">已完成</span>
+            <el-button class="text-green-600 font-medium"
+                       v-if="row.repairStatus===2"
+                       type="danger"
+                       size="small"
+                       @click="changeToFinish(row.id)"
+            >
+              点击完成
+            </el-button>
+            <el-button class="text-green-600 font-medium" size="small" type="info" v-if="row.repairStatus===3" disabled>已完成
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -259,26 +272,6 @@ const mockData = [
         />
       </div>
     </el-card>
-
-    <!-- 处理弹窗 -->
-    <el-dialog v-model="dialogVisible" title="处理报修工单" width="500" center>
-      <div class="text-center">
-        <p class="text-lg font-medium mb-4">确认将该报修单状态更新为 <span class="text-green-600">处理中</span> 吗？</p>
-        <el-input
-          v-model="handleForm.remark"
-          type="textarea"
-          :rows="3"
-          placeholder="请输入处理备注（可选）"
-          class="w-11/12 mx-auto"
-        />
-      </div>
-      <template #footer>
-        <div class="dialog-footer text-center">
-          <el-button @click="dialogVisible = false">取 消</el-button>
-          <el-button type="primary" @click="submitHandle">确 认</el-button>
-        </div>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
