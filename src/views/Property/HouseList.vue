@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { Search, Plus, Edit, Delete } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import useHouseStore from '@/stores/house.js'
 
 const houseStore = useHouseStore()
@@ -13,23 +13,10 @@ const total = ref(0) // 总条数
 const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
-  buildingNo: '',
-  roomNo: ''
+  buildingNo: null,
+  roomNo: null
 })
 
-// 2. 模拟数据类型定义 (TypeScript 思维，即使不用 TS 也建议维护此结构)
-/**
- * HouseItem = {
- *   id: Number,
- *   buildingNo: String, // 楼栋号
- *   unitNo: String,     // 单元号
- *   roomNo: String,     // 房号
- *   houseArea: Number,  // 面积
- *   ownerName: String,  // 业主姓名
- *   phone: String,      // 业主电话
- *   status: Number      // 状态 (1:空置, 2:已入住, 3:待售)
- * }
- */
 
 
 
@@ -40,10 +27,11 @@ const getList = async () => {
     // 模拟网络延迟，提升用户体验感
     await new Promise(resolve => setTimeout(resolve, 500))
 
-    // 调用模拟数据（实际替换为：const res = await getHouseListApi(queryParams.value)）
-    const mockData = houseStore.getHouseList(queryParams.value)
-    tableData.value = mockData.list
-    total.value = mockData.total
+    // 调用数据
+    const mockData = await houseStore.getHouseList(queryParams.value)
+
+    tableData.value = mockData?.data.slice(0,50)
+    total.value = mockData.total || 1
   } catch (error) {
     console.error('获取数据失败:', error)
     ElMessage.error('数据加载失败')
@@ -94,12 +82,13 @@ const handleDelete = (row) => {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(() => {
+  }).then(async () => {
     ElMessage.success('删除成功')
     // 本地模拟删除，实际需调用 API
-    getList()
-  }).catch(() => {
-    ElMessage.info('已取消删除')
+    await houseStore.deleteHouse(row.id)
+    await getList()
+  }).catch((e) => {
+    ElMessage.info('已取消删除'+e)
   })
 }
 
@@ -118,14 +107,14 @@ onMounted(() => {
       <template #header>
         <div class="flex items-center justify-between">
           <span class="text-lg font-semibold text-gray-800">📋 筛选查询</span>
-          <el-button
-            :icon="Plus"
-            type="primary"
-            @click="handleAdd"
-            class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500"
-          >
-            新增房屋
-          </el-button>
+<!--          <el-button-->
+<!--            :icon="Plus"-->
+<!--            type="primary"-->
+<!--            @click="handleAdd"-->
+<!--            class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500"-->
+<!--          >-->
+<!--            新增房屋-->
+<!--          </el-button>-->
         </div>
       </template>
 
@@ -168,7 +157,7 @@ onMounted(() => {
         class="text-sm"
       >
         <!-- 序号 -->
-        <el-table-column label="#" type="index" width="60" align="center" />
+        <el-table-column label="#序号" type="index" width="80" align="center" />
 
         <!-- 楼栋与房号 -->
         <el-table-column label="房屋信息" width="180" align="center">
@@ -190,36 +179,24 @@ onMounted(() => {
         <el-table-column label="业主详情" width="200" align="center">
           <template #default="scope">
             <div class="flex flex-col items-center">
-              <span class="font-medium">{{ scope.row.ownerName || '暂无' }}</span>
-              <span class="text-xs text-gray-400 mt-1">{{ scope.row.phone || '未登记' }}</span>
+              <span class="font-medium">{{ scope.row.user.realName || '暂无' }}</span>
+              <span class="text-xs text-gray-400 mt-1">{{ scope.row.user.phone || '未登记' }}</span>
             </div>
-          </template>
-        </el-table-column>
-
-        <!-- 状态标签 -->
-        <el-table-column label="状态" width="120" align="center">
-          <template #default="scope">
-            <el-tag
-              :type="scope.row.status === 1 ? 'info' : scope.row.status === 2 ? 'success' : 'warning'"
-              effect="light"
-            >
-              {{ scope.row.status === 1 ? '空置' : scope.row.status === 2 ? '已入住' : '待售' }}
-            </el-tag>
           </template>
         </el-table-column>
 
         <!-- 操作列 -->
         <el-table-column label="操作" width="180" align="center" fixed="right">
           <template #default="scope">
-            <el-button
-              :icon="Edit"
-              size="small"
-              type="primary"
-              link
-              @click="handleEdit(scope.row)"
-            >
-              编辑
-            </el-button>
+<!--            <el-button-->
+<!--              :icon="Edit"-->
+<!--              size="small"-->
+<!--              type="primary"-->
+<!--              link-->
+<!--              @click="handleEdit(scope.row)"-->
+<!--            >-->
+<!--              编辑-->
+<!--            </el-button>-->
             <el-popconfirm
               title="确定删除吗？"
               @confirm="handleDelete(scope.row)"
