@@ -1,7 +1,20 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { ElButton, ElTable, ElTableColumn, ElTag, ElDrawer, ElForm, ElFormItem, ElInput, ElUpload, ElMessage, ElMessageBox } from 'element-plus'
+import {
+  ElButton,
+  ElTable,
+  ElTableColumn,
+  ElTag,
+  ElDrawer,
+  ElForm,
+  ElFormItem,
+  ElInput,
+  ElUpload,
+  ElMessage,
+  ElMessageBox
+} from 'element-plus'
 import { Plus, Picture } from '@element-plus/icons-vue'
+import useRepairStore from '@/stores/repair'
 
 // --- 1. 模拟数据与状态 ---
 // 业主ID (通常从 Pinia 或 LocalStorage 获取)
@@ -37,33 +50,14 @@ const statusMap = {
 }
 
 // --- 2. 核心逻辑方法 ---
-
+const repairStore = useRepairStore()
 // 模拟从后端获取数据
-const fetchRepairs = () => {
-  // 实际开发中这里调用 API: apiGetRepairList({ ownerId: currentOwnerId })
-  repairList.value = [
-    {
-      id: 101,
-      repairNo: 'REP20240501001',
-      repairType: '水管漏水',
-      repairDesc: '厨房水龙头接口处漏水，滴水严重。',
-      repairImg: ['https://via.placeholder.com/150'], // 模拟图片链接
-      repairStatus: 3, // 已完成
-      handleResult: '更换了新的密封垫圈，已修复。',
-      evaluateStar: 5,
-      evaluateContent: '师傅很专业，修得很快，点赞！',
-      createTime: '2024-05-01 10:30'
-    },
-    {
-      id: 102,
-      repairNo: 'REP20240502001',
-      repairType: '电路故障',
-      repairDesc: '客厅主灯不亮，开关无反应。',
-      repairImg: [],
-      repairStatus: 1, // 待受理
-      createTime: '2024-05-02 14:20'
-    }
-  ]
+const fetchRepairs = async () => {
+  // 调用 API: apiGetRepairList({ ownerId: currentOwnerId })
+  const res = await repairStore.getRepairList()
+  if (res.code === 200) {
+    repairList.value = res.data
+  }
 }
 
 // 打开申请报修抽屉
@@ -212,13 +206,12 @@ onMounted(() => {
           </el-form-item>
 
           <!-- 问题描述 -->
-          <el-form-item  :label="isViewing ? '故障描述' : '详细描述'" prop="repairDesc">
+          <el-form-item :label="isViewing ? '故障描述' : '详细描述'" prop="repairDesc">
             <el-input
               v-model="repairForm.repairDesc"
               type="textarea"
               :rows="4"
               :placeholder="isViewing ? '这是您之前提交的描述：' : '请详细描述故障情况，以便师傅准备工具'"
-              readonly
             />
           </el-form-item>
 
@@ -227,12 +220,13 @@ onMounted(() => {
             <el-upload
               v-if="!isViewing"
               action="#"
-              disabled
               list-type="picture-card"
               :auto-upload="false"
               :on-preview="handlePictureCardPreview"
             >
-              <el-icon><Plus /></el-icon>
+              <el-icon>
+                <Plus />
+              </el-icon>
             </el-upload>
             <div v-else class="flex flex-wrap gap-2">
               <el-image
@@ -245,7 +239,9 @@ onMounted(() => {
               >
                 <template #placeholder>
                   <div class="w-20 h-20 flex items-center justify-center bg-gray-100">
-                    <el-icon><Picture /></el-icon>
+                    <el-icon>
+                      <Picture />
+                    </el-icon>
                   </div>
                 </template>
               </el-image>

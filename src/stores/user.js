@@ -36,7 +36,7 @@ export const useUserStore = defineStore('user', () => {
     try {
       const res = await api.post('/auth/auth/register', registerForm)
       ElNotification.success({
-        title: '注册成功',
+        noticeTitle: '注册成功',
         message: '注册成功~'
       })
       return true

@@ -27,7 +27,7 @@ const currentBillId = ref(null)
 // 筛选条件
 const queryParams = ref({
   billNo: '',
-  billStatus: 2,
+  billStatus: 1,
   pageNum: 1,
   pageSize: 10
 })
@@ -66,12 +66,18 @@ const handlePay = (id) => {
 const confirmPay = async () => {
   // 发送请求进行支付。
   const res = await feeStore.payFee(currentBillId.value)
-  loading.value = true
-  setTimeout(async () => {
-    ElMessage.success('支付成功！')
+  if (res.code ===200){
+    loading.value = true
+    setTimeout(async () => {
+      ElMessage.success('支付成功！')
+      dialogVisible.value = false
+      await fetchData() // 刷新列表
+    }, 500)
+  }else{
+    ElMessage.error('支付失败,请联系物业管理员！')
     dialogVisible.value = false
     await fetchData() // 刷新列表
-  }, 500)
+  }
 }
 
 // 页面加载时获取数据

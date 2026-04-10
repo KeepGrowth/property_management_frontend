@@ -10,7 +10,7 @@ export const useFeeStore = defineStore('fee', () => {
   async function getUserFeeList(params) {
     try {
       const clean_params = cleanObject(params)
-      const res = await api.get('/fee-bill/list', { params:clean_params })
+      const res = await api.get('/fee-bill/list', { params: clean_params })
 
       if (res.code === 200) {
         return res
@@ -22,10 +22,13 @@ export const useFeeStore = defineStore('fee', () => {
 
 
   // 支付对应id的账单
-  async function payFee(feeId){
+  async function payFee(feeId) {
     try {
-      const res = await api.put('/fee-bill', feeId)
-      if (res.data.code === 200) {
+      const res = await api.put('/fee-bill', {
+        id: feeId,
+        billStatus:2
+      })
+      if (res.code === 200) {
         return res
       }
     } catch (error) {
@@ -35,7 +38,7 @@ export const useFeeStore = defineStore('fee', () => {
 
   return {
     getUserFeeList,
-    payFee,
+    payFee
   }
 }, {
   persist: true

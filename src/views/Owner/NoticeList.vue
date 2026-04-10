@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { Search, Document, Clock, User } from '@element-plus/icons-vue'
 import useUserStore from '@/stores/user.js'
 import { ElMessage } from 'element-plus'
+import useNoticeStore from '@/stores/notice.js'
 
 const userStore = useUserStore()
 const loading = ref(false)
@@ -10,20 +11,21 @@ const noticeList = ref([])
 
 // 模拟数据类型映射（对应数据库的 notice_type）
 const typeMap = {
-  1: { label: '物业通知', color: 'text-blue-500' },
-  2: { label: '紧急停水停电', color: 'text-red-500' },
-  3: { label: '社区活动', color: 'text-green-500' },
-  4: { label: '节日问候', color: 'text-purple-500' }
+  '1': { label: '物业通知', color: 'text-blue-500' },
+  '2': { label: '紧急停水停电', color: 'text-red-500' },
+  '3': { label: '社区活动', color: 'text-green-500' },
+  '4': { label: '节日问候', color: 'text-purple-500' }
 }
-
+const noticeStore = useNoticeStore()
 // 获取公告列表
 const fetchNotices = async () => {
   loading.value = true
   try {
-    // 实际开发中替换为真实API
-    // const res = await getNoticeList({ userId: userStore.userId })
-    // noticeList.value = res.data || mockData
-    noticeList.value =  mockData
+    // API
+    const res = await noticeStore.getNoticeList()
+    console.log(res)
+    noticeList.value = res.data
+    // noticeList.value =  mockData
   } catch (error) {
     ElMessage.error('加载公告失败'+error)
   } finally {
@@ -35,11 +37,10 @@ const fetchNotices = async () => {
 const mockData = [
   {
     id: 1,
-    title: '关于本周六进行电梯维护的通知',
-    content: '尊敬的业主：为了保障电梯安全运行，物业将于本周六上午8:00-12:00对1-5栋电梯进行例行维护...',
-    type: 2,
-    publisher: '物业工程部',
-    publishTime: '2024-04-20 09:00',
+    noticeTitle: '关于本周六进行电梯维护的通知',
+    noticeContent: '尊敬的业主：为了保障电梯安全运行，物业将于本周六上午8:00-12:00对1-5栋电梯进行例行维护...',
+    noticeType: 2,
+    publish_time: '2024-04-20 09:00',
     isRead: false
   },
   {
@@ -48,7 +49,6 @@ const mockData = [
     content: '您好，本月的物业管理费账单已生成，请登录系统查看账单详情并及时缴纳，感谢您的配合。',
     type: 1,
     publisher: '物业财务',
-    publishTime: '2024-04-15 14:30',
     isRead: true
   }
 ]
@@ -57,7 +57,6 @@ const mockData = [
 const markAsRead = (id) => {
   const item = noticeList.value.find(n => n.id === id)
   if (item) item.isRead = true
-  // 这里可以发送请求给后端记录已读状态
 }
 
 onMounted(() => {
@@ -100,36 +99,36 @@ onMounted(() => {
               <h3
                 class="font-semibold text-lg group-hover:text-blue-600 transition-colors"
               >
-                {{ item.title }}
+                {{ item.noticeTitle }}
               </h3>
             </div>
 
             <!-- 类型标签 -->
             <el-tag
-              :type="item.type === 2 ? 'danger' : item.type === 1 ? 'primary' : 'success'"
+              :type="item.noticeType === '2' ? 'danger' : item.noticeType === '1' ? 'primary' : 'success'"
               size="small"
               :effect="'light'"
             >
-              {{ typeMap[item.type]?.label || '通知' }}
+              {{ typeMap[item.noticeType]?.label || '通知' }}
             </el-tag>
           </div>
         </template>
 
         <!-- 内容摘要 -->
         <div class="text-gray-600 text-sm leading-relaxed line-clamp-2 mb-4">
-          {{ item.content }}
+          {{ item.noticeContent }}
         </div>
 
         <!-- 底部元信息 -->
         <div class="flex flex-wrap items-center justify-between text-xs text-gray-400 border-t pt-3 mt-2">
           <div class="flex items-center space-x-4">
-            <el-tag class="flex items-center">{{ item.publisher }}</el-tag>
-            <el-tag class="flex items-center" type="success">{{ item.publishTime }}</el-tag>
+            <el-tag class="flex items-center">公告ID:{{ item.id }}</el-tag>
+            <el-tag class="flex items-center" type="success">{{ item.publish_time }}</el-tag>
           </div>
           <div>
             <!-- 阅读状态 -->
             <el-text :type="item.isRead ? 'success' : 'info'" size="small">
-              {{ item.isRead ? '已阅读' : '未读' }}
+              {{ item.isRead ? '已阅读' : '阅读' }}
             </el-text>
           </div>
         </div>

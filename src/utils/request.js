@@ -49,7 +49,7 @@ instance.interceptors.response.use(
       return response.data
     }else if (response.data.code === 401){
       ElNotification.error({
-        title:'凭证过期',
+        noticeTitle:'凭证过期',
         message:'用户凭证过期，请重新登录。'
       })
     }
