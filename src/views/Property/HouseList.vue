@@ -2,6 +2,9 @@
 import { ref, onMounted } from 'vue'
 import { Search, Plus, Edit, Delete } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import useHouseStore from '@/stores/house.js'
+
+const houseStore = useHouseStore()
 
 // 1. 定义响应式数据
 const loading = ref(false) // 加载状态
@@ -28,6 +31,8 @@ const queryParams = ref({
  * }
  */
 
+
+
 // 3. 核心方法：获取列表
 const getList = async () => {
   loading.value = true
@@ -36,7 +41,7 @@ const getList = async () => {
     await new Promise(resolve => setTimeout(resolve, 500))
 
     // 调用模拟数据（实际替换为：const res = await getHouseListApi(queryParams.value)）
-    const mockData = fetchHouseList(queryParams.value)
+    const mockData = houseStore.getHouseList(queryParams.value)
     tableData.value = mockData.list
     total.value = mockData.total
   } catch (error) {
@@ -48,9 +53,9 @@ const getList = async () => {
 }
 
 // 4. 搜索与重置
-const handleQuery = () => {
+const handleQuery = async () => {
   queryParams.value.pageNum = 1
-  getList()
+  await getList()
 }
 
 const resetQuery = () => {

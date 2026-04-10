@@ -1,4 +1,6 @@
 import axios from 'axios'
+import useUserStore from '@/stores/user.js'
+import { ElMessage, ElNotification } from 'element-plus'
 // 开发环境：本地Flask地址 | 生产环境：运行npm run build的时候自动替换为线上接口地址
 const baseURL = process.env.NODE_ENV === 'development'
   ? 'http://localhost:8888'  // 开发环境-本地地址
@@ -8,31 +10,51 @@ const baseURL = process.env.NODE_ENV === 'development'
 // 1. 创建axios实例（只做基础配置，不在headers中写死Token）
 const instance = axios.create({
   baseURL: baseURL,
-  timeout: 100000,
+  timeout: 0,
   withCredentials: true
 })
 
-// 2. 添加请求拦截器，每次请求前动态注入最新Token
+// 2. 添加请求拦截器
 instance.interceptors.request.use(
-  async (config) => {
-    // 排除登录、注册接口 → 不携带token
-    const excludeUrls = ['/auth/login', '/auth/register']
+  (config) => {
+    // 1. 更精确的排除逻辑 (使用正则或完整路径匹配)
+    // 假设 config.url 可能是相对路径，需要根据 baseURL 组合判断，或者直接判断 config.url
+    const noNeedTokenUrls = ['/auth/login', '/auth/register']
+    const isNoNeedToken = noNeedTokenUrls.some(url => config.url.endsWith(url))
 
-    // 如果是这两个接口，直接返回，不添加token
-    if (excludeUrls.some(url => config.url.includes(url))) {
+    if (isNoNeedToken) {
       return config
     }
 
-    // 其他接口才携带 token
-    const useUserStore = (await import('@/stores/user')).default
+    // 2. 获取 Token
     const userStore = useUserStore()
-    let token = userStore.token
+    const token = userStore.token
+
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      // 确保 headers 存在
+      config.headers = config.headers || {}
+      config.headers.Authorization = `Bearer ${token}`
     }
     return config
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+
+// 3. 强烈建议添加响应拦截器 (处理 401 过期)
+instance.interceptors.response.use(
+  (response) => {
+    if (response.data.code ===200){
+      return response.data
+    }else if (response.data.code === 401){
+      ElNotification.error({
+        title:'凭证过期',
+        message:'用户凭证过期，请重新登录。'
+      })
+    }
+
+  },
 )
 
 // 导出配置完成的axios实例

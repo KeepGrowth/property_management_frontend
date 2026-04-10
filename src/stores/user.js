@@ -18,10 +18,9 @@ export const useUserStore = defineStore('user', () => {
   async function login(loginForm) {
 
     const res = await api.post('/auth/login', loginForm)
-    if (res.data.code === 200) {
-      token.value = res.data.data.token
-      userInfo.value = res.data.data.user
-      console.log(token.value)
+    if (res.code === 200) {
+      token.value = res.data.token
+      userInfo.value = res.data.user
       return res
     } else {
       return null
@@ -103,71 +102,12 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  /**
-   * 获取我的收藏
-   */
-  async function fetchFavorites() {
-    try {
-      const res = await api.get('/users/my-favorites')
-      if (res.code === 200 || res.message === '获取成功') {
-        favorites.value = res.data
-        return res.data
-      }
-    } catch (error) {
-      throw error.response?.data || error
-    }
-  }
 
-  /**
-   * 获取我发布的房源
-   */
-  async function fetchMyHouses() {
-    try {
-      const res = await api.get('/users/my-houses')
-      if (res.data.code === 200 || res.data.message === '获取成功') {
-        // 后端返回结构: { houses: [...], total: 10 }
-        myHouses.value = res.data.data.houses
-        totalHouses.value = res.data.data.total
-        return res
-      }
-    } catch (error) {
-      throw error.response?.data || error
-    }
-  }
-
-  /**
-   * 登出
-   */
-  function logout() {
-    token.value = ''
-    userInfo.value = null
-    favorites.value = []
-    myHouses.value = []
-    totalHouses.value = 0
-    localStorage.removeItem('token')
-
-    // 可选：跳转回首页
-    const router = useRouter()
-    router.push('/login')
-  }
-
-  // 初始化：如果本地有 token，尝试恢复用户信息（可选，通常在 App.vue 或 Layout 中调用）
-  async function init() {
-    if (token.value && !userInfo.value) {
-      try {
-        await fetchProfile()
-      } catch (e) {
-        // Token 失效，清除
-        logout()
-      }
-    }
-  }
 
   return {
     login,
-    logout,
-    init,
-    userInfo
+    userInfo,
+    token
   }
 }, {
   persist: true

@@ -40,7 +40,7 @@ const handleLogin = () => {
     if (valid) {
       loading.value = true
       const res = await userStore.login(loginForm.value)
-      if (res?.data?.code === 200) {
+      if (res?.code === 200) {
         loading.value = false
         ElMessage.success('登录成功！')
         router.push('/home/index')
@@ -54,19 +54,7 @@ const handleLogin = () => {
   })
 }
 
-// 模拟注册逻辑
-const handleRegister = () => {
-  registerFormRef.value?.validate((valid) => {
-    if (valid) {
-      loading.value = true
-      setTimeout(() => {
-        loading.value = false
-        ElMessage.success('注册成功，请登录！')
-        activeTab.value = 'login' // 注册成功自动切换到登录页
-      }, 800)
-    }
-  })
-}
+
 
 // 密码确认校验规则
 const validatePass = (rule: any, value: string, callback: Function) => {
@@ -101,7 +89,7 @@ const registerRules = {
       class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-500 to-cyan-400 items-center justify-center p-12">
       <div class="text-white text-center max-w-md">
         <h1 class="text-4xl font-bold mb-4">小区物业管理系统</h1>
-        <p class="text-xl mb-8">智慧社区，便捷生活</p>
+        <p class="text-xl mb-8">基于SpringBoot+Vue3的智慧社区，便捷生活</p>
         <div class="space-y-4 text-left">
           <div class="flex items-center space-x-2">
             <div class="w-2 h-2 bg-white rounded-full"></div>
@@ -128,7 +116,7 @@ const registerRules = {
             <span class="text-2xl">🏠</span>
           </div>
           <h2 class="mt-2 text-2xl font-bold text-gray-900">
-            欢迎登录/注册
+            欢迎登录
           </h2>
           <p class="mt-1 text-sm text-gray-500">请使用您的账号进行操作</p>
         </div>
@@ -167,7 +155,7 @@ const registerRules = {
 
               <div class="flex items-center justify-between">
                 <ElCheckbox>记住我</ElCheckbox>
-                <ElLink type="primary" :underline="false">忘记密码?</ElLink>
+                <ElLink type="primary" :underline="false">有问题请联系物业</ElLink>
               </div>
 
               <ElButton
@@ -182,64 +170,12 @@ const registerRules = {
             </ElForm>
           </ElTabPane>
 
-          <!-- 注册表单 -->
-          <ElTabPane label="注册" name="register">
-            <ElForm
-              ref="registerFormRef"
-              :model="registerForm"
-              :rules="registerRules"
-              class="mt-6 space-y-6"
-              @keyup.enter="handleRegister"
-            >
-              <ElFormItem prop="username">
-                <ElInput
-                  v-model="registerForm.username"
-                  placeholder="请输入账号 (手机号/自定义)"
-                  :prefix-icon="User"
-                  size="large"
-                  clearable
-                />
-              </ElFormItem>
-
-              <ElFormItem prop="password">
-                <ElInput
-                  v-model="registerForm.password"
-                  type="password"
-                  placeholder="请输入密码"
-                  :prefix-icon="Lock"
-                  size="large"
-                  show-password
-                />
-              </ElFormItem>
-
-              <ElFormItem prop="confirmPassword">
-                <ElInput
-                  v-model="registerForm.confirmPassword"
-                  type="password"
-                  placeholder="请确认密码"
-                  :prefix-icon="Lock"
-                  size="large"
-                  show-password
-                />
-              </ElFormItem>
-
-              <ElButton
-                type="success"
-                size="large"
-                :loading="loading"
-                @click="handleRegister"
-                class="w-full"
-              >
-                立即注册
-              </ElButton>
-            </ElForm>
-          </ElTabPane>
         </ElTabs>
 
         <!-- 底部提示 -->
         <div class="text-center text-sm text-gray-500">
           <p>💡 演示账号：</p>
-          <p>业主：user / 123456 | 物业：property / 123456 | 管理员:root /123456</p>
+          <p>业主：123 / 123 | 物业：1234 / 1234 | 管理员:123456 /123456</p>
         </div>
       </div>
     </div>
