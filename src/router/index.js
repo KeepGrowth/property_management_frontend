@@ -131,7 +131,7 @@ router.beforeEach((to, from, next) => {
 
 
   // 3. 如果访问的是需要登录的页面
-  if (to.meta.roles.includes(userStore.userInfo.user_type) ) {
+  if (to.meta.roles.includes(userStore.userInfo.userType) ) {
     // 有 Token，允许进入
       next()
   } else {

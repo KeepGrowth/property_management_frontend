@@ -84,7 +84,7 @@ const breadcrumbList = computed(() => {
           </el-menu-item>
 
           <!-- 业主模块 (根据角色 v-if 控制显示，此处为示例) -->
-          <el-sub-menu index="owner" v-if="userStore.userInfo.user_type===1">
+          <el-sub-menu index="owner" v-if="userStore.userInfo.userType===1">
             <template #title>
               <el-icon>
                 <User />
@@ -97,7 +97,7 @@ const breadcrumbList = computed(() => {
           </el-sub-menu >
 
           <!-- 物业模块 -->
-          <el-sub-menu index="property" v-if="userStore.userInfo.user_type===2">
+          <el-sub-menu index="property" v-if="userStore.userInfo.userType===2">
             <template #title>
               <el-icon>
                 <House />
@@ -110,7 +110,7 @@ const breadcrumbList = computed(() => {
             <el-menu-item index="/home/property/repair">维修管理</el-menu-item>
           </el-sub-menu>
           <!-- 系统管理员模块 -->
-          <el-sub-menu index="admin" v-if="userStore.userInfo.user_type===3">
+          <el-sub-menu index="admin" v-if="userStore.userInfo.userType===3">
             <template #title>
               <el-icon>
                 <House />
@@ -147,7 +147,7 @@ const breadcrumbList = computed(() => {
         <!-- 右侧用户操作区 -->
         <div class="flex items-center space-x-4">
           <!-- 欢迎语 -->
-          <span class="text-gray-600 text-sm">欢迎，{{ userInfo.real_name }}</span>
+          <span class="text-gray-600 text-sm">欢迎，{{ userInfo.realName }}</span>
 
           <!-- 头像下拉菜单 -->
           <el-dropdown @command="handleCommand" placement="bottom-end">

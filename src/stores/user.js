@@ -2,7 +2,9 @@ import { defineStore } from 'pinia'
 import api from '@/utils/request.js'
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElNotification } from 'element-plus' // 如果需要登录后跳转
+import { ElMessage, ElNotification } from 'element-plus'
+import cleanObject from '@/utils/common.js'
+import router from '@/router/index.js' // 如果需要登录后跳转
 
 export const useUserStore = defineStore('user', () => {
   // --- State ---
@@ -102,12 +104,63 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  // 条件查询用户列表
+  async function queryUserList(params) {
+    try {
+      const cleanParams = cleanObject(params)
+      const res = await api.get('/user/list', {
+        params: cleanParams
+      })
+      if (res.code === 200) {
+        return res
+      }
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  }
+
+  // 新增用户
+  async function addUser(userForm) {
+    try {
+      const cleanParams = cleanObject(userForm)
+      const res = await api.post('/user/add', cleanParams)
+      if (res.code === 200) {
+        return res
+      }
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  }
+
+  // 更新用户
+  async function updateUser(userForm) {
+    try {
+      const cleanParams = cleanObject(userForm)
+      const res = await api.put('/user/update', cleanParams)
+      if (res.code === 200) {
+        return res
+      }
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  }
+
+  // 更新用户
+  async function logout() {
+    await router.push({name:'Login'})
+  }
+
+
 
 
   return {
     login,
     userInfo,
-    token
+    token,
+    queryUserList,
+    addUser,
+    logout,
+    updateUser
   }
 }, {
   persist: true

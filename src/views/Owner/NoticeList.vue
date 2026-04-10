@@ -22,7 +22,7 @@ const fetchNotices = async () => {
   loading.value = true
   try {
     // API
-    const res = await noticeStore.getNoticeList()
+    const res = await noticeStore.getUserNoticeList()
     console.log(res)
     noticeList.value = res.data
     // noticeList.value =  mockData

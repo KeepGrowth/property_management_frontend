@@ -1,7 +1,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { ElButton, ElTable, ElTableColumn, ElTag, ElMessage, ElMessageBox } from 'element-plus'
+import { ElButton, ElTable, ElTableColumn, ElTag, ElMessage, ElMessageBox, ElNotification } from 'element-plus'
 import { Search, Plus, Edit, Delete, Refresh } from '@element-plus/icons-vue'
+import useUserStore from '@/stores/user.js'
 
 // 1. 定义数据模型 (模拟或对接后端)
 const userList = ref([])
@@ -13,7 +14,7 @@ const isEdit = ref(false)
 const searchForm = ref({
   username: '',
   realName: '',
-  userType: ''
+  userType: null
 })
 
 // 表单数据 (用于弹窗)
@@ -37,7 +38,7 @@ const rules = {
 const mockData = [
   { id: 1, username: 'admin', realName: '系统管理员', phone: '13800000000', userType: '3', status: '1' },
   { id: 2, username: 'owner001', realName: '张三', phone: '13900000001', userType: '1', status: '1' },
-  { id: 3, username: 'staff001', realName: '李四', phone: '13900000002', userType: '2', status: '0' },
+  { id: 3, username: 'staff001', realName: '李四', phone: '13900000002', userType: '2', status: '0' }
 ]
 
 // 角色映射 (用于显示)
@@ -54,26 +55,30 @@ const statusMap = {
 }
 
 // 3. 核心方法
+const userStore = useUserStore()
 // 获取列表
-const fetchList = () => {
+const fetchList = async () => {
   loading.value = true
-  // 模拟接口延迟
-  setTimeout(() => {
-    userList.value = mockData // 实际替换为 axios.get('/api/v1/admin/user/list', { params: searchForm.value })
+  const res = await userStore.queryUserList(searchForm.value)
+  if (res.code === 200) {
+    userList.value = res.data
     loading.value = false
-  }, 500)
+    ElNotification.success('用户数据获取成功')
+  } else {
+    ElNotification.error('数据获取失败，请检查网络')
+  }
 }
 
 // 重置搜索
-const handleReset = () => {
+const handleReset = async () => {
   searchForm.value = { username: '', real_name: '', userType: '' }
-  fetchList()
+  await fetchList(searchForm.value)
 }
 
 // 打开新增弹窗
 const handleAdd = () => {
   isEdit.value = false
-  formData.value = { id: null, username: '', real_name: '', phone: '', userType: '1', bill_status: '1' }
+  formData.value = { id: null, username: '', realName: '', phone: '', userType: 1, status: 1 }
   dialogVisible.value = true
 }
 
@@ -85,15 +90,22 @@ const handleEdit = (row) => {
 }
 
 // 提交表单
-const submitForm = () => {
-  // 这里通常需要 el-form 组件进行验证，为了简化示例直接提交
+const submitForm = async () => {
   if (isEdit.value) {
-    ElMessage.success(`更新用户 ${formData.value.realName} 成功`)
+    const res = await userStore.updateUser(formData.value)
+    if (res.code === 200) {
+      ElMessage.success(`更新用户 ${formData.value.realName} 成功`)
+      await fetchList(searchForm.value)
+    }
   } else {
-    ElMessage.success(`新增用户 ${formData.value.realName} 成功`)
+    const res = await userStore.addUser(formData.value)
+    if (res.code === 200) {
+      ElMessage.success(`更新用户 ${formData.value.realName} 成功`)
+      await fetchList(searchForm.value)
+    }
   }
   dialogVisible.value = false
-  fetchList() // 刷新列表
+  await fetchList() // 刷新列表
 }
 
 // 删除用户
@@ -162,11 +174,11 @@ onMounted(() => {
               class="w-32"
             />
           </el-form-item>
-          <el-form-item label="角色">
+          <el-form-item label="角色" style="width: 200px">
             <el-select v-model="searchForm.userType" placeholder="请选择角色" clearable class="w-32">
-              <el-option label="业主" value="1" />
-              <el-option label="物业人员" value="2" />
-              <el-option label="管理员" value="3" />
+              <el-option label="业主" :value="1" />
+              <el-option label="物业人员" :value="2" />
+              <el-option label="管理员" :value="3" />
             </el-select>
           </el-form-item>
           <el-form-item>
@@ -263,16 +275,16 @@ onMounted(() => {
         </el-form-item>
         <el-form-item label="角色" prop="userType">
           <el-radio-group v-model="formData.userType">
-            <el-radio label="1">业主</el-radio>
-            <el-radio label="2">物业人员</el-radio>
-            <el-radio label="3">管理员</el-radio>
+            <el-radio label="1" :value="1">业主</el-radio>
+            <el-radio label="2" :value="2">物业人员</el-radio>
+            <el-radio label="3" :value="3">管理员</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-switch
             v-model="formData.status"
-            active-value="1"
-            inactive-value="0"
+            :active-value="1"
+            :inactive-value="0"
             active-text="启用"
             inactive-text="禁用"
           />
@@ -297,15 +309,19 @@ onMounted(() => {
 .shadow-md {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
+
 .bg-gray-50 {
   background-color: #f9fafb;
 }
+
 .text-gray-800 {
   color: #1f2937;
 }
+
 .font-bold {
   font-weight: 700;
 }
+
 /* 表格行悬停效果 */
 .el-table :deep(.el-table__body tr:hover > td) {
   background-color: #f0f9ff !important;

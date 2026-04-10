@@ -54,7 +54,7 @@ const repairStore = useRepairStore()
 // 模拟从后端获取数据
 const fetchRepairs = async () => {
   // 调用 API: apiGetRepairList({ ownerId: currentOwnerId })
-  const res = await repairStore.getRepairList()
+  const res = await repairStore.getUserRepairList()
   if (res.code === 200) {
     repairList.value = res.data
   }

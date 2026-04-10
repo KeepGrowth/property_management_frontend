@@ -2,7 +2,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { User, Lock, EditPen, Upload, Check } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user' // 假设你使用了 Pinia
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
 
 // --- 1. 数据定义 ---
 const userStore = useUserStore()
@@ -10,7 +10,7 @@ const userInfo = ref({ ...userStore.userInfo }) // 从 Pinia 获取用户信息
 
 // 表单数据
 const form = reactive({
-  real_name: '',
+  realName: '',
   phone: '',
 })
 
@@ -46,34 +46,43 @@ const beforeAvatarUpload = (file) => {
 const submitProfile = async () => {
   // 这里调用 API 更新
   try {
-    // await updateProfileAPI(form)
-    ElMessage.success('资料更新成功！')
+    const res = await userStore.updateUser(form)
+    if (res.code ===200){
+      ElNotification.success('资料更新成功，请刷新页面')
+    }
   } catch (error) {
-    ElMessage.error('更新失败')
+    ElNotification.error('更新失败'+error)
   }
 }
 
 // 提交密码修改
-const submitPassword = () => {
+const submitPassword = async () => {
   if (pwdForm.newPassword !== pwdForm.confirmPassword) {
     ElMessage.error('两次输入的密码不一致！')
     return
   }
   // 调用修改密码 API
-  // await changePasswordAPI(pwdForm)
-  ElMessageBox.alert('密码修改成功，请重新登录', '提示', {
-    confirmButtonText: '确定',
-    type: 'success',
-    callback: () => {
-      userStore.logout() // 修改密码后强制退出重新登录
-    }
-  })
+  form.password = pwdForm.confirmPassword
+  const res = await userStore.updateUser(form)
+  if (res.code ===200){
+    ElMessageBox.alert('密码修改成功，请重新登录', '提示', {
+      confirmButtonText: '确定',
+      type: 'success',
+      callback: async () => {
+        await userStore.logout() // 修改密码后强制退出重新登录
+      }
+    })
+  }else{
+    ElNotification.error('修改密码失败，请检查网络。')
+  }
+
 }
 
 // --- 3. 生命周期 ---
 onMounted(() => {
   // 初始化表单数据
-  form.real_name = userInfo.value.realName || ''
+  form.id = userInfo.value.id
+  form.realName = userInfo.value.realName || ''
   form.phone = userInfo.value.phone || ''
   form.email = userInfo.value.email || ''
 })
@@ -106,7 +115,7 @@ onMounted(() => {
             </el-form-item>
 
             <el-form-item label="真实姓名">
-              <el-input v-model="form.real_name" :placeholder="userInfo.real_name" class="w-full" clearable>
+              <el-input v-model="form.realName" :placeholder="userInfo.realName" class="w-full" clearable>
                 <template #prefix>
                   <User class="text-gray-400" />
                 </template>
@@ -122,9 +131,9 @@ onMounted(() => {
             </el-form-item>
 
             <el-form-item label="角色">
-              <el-tag type="success" size="large" v-if="userInfo.user_type===1">业主</el-tag>
-              <el-tag type="success" size="large" v-if="userInfo.user_type===2">物业</el-tag>
-              <el-tag type="success" size="large" v-if="userInfo.user_type===3">系统管理员</el-tag>
+              <el-tag type="success" size="large" v-if="userInfo.userType===1">业主</el-tag>
+              <el-tag type="success" size="large" v-if="userInfo.userType===2">物业</el-tag>
+              <el-tag type="success" size="large" v-if="userInfo.userType===3">系统管理员</el-tag>
             </el-form-item>
 
             <el-form-item>
@@ -144,13 +153,6 @@ onMounted(() => {
           </template>
 
           <el-form :model="pwdForm" :rules="pwdRules" label-width="100px" class="px-4" size="large">
-            <el-form-item label="旧密码" prop="oldPassword">
-              <el-input v-model="pwdForm.oldPassword" type="password" placeholder="请输入旧密码" show-password clearable>
-                <template #prefix>
-                  <Lock class="text-gray-400" />
-                </template>
-              </el-input>
-            </el-form-item>
 
             <el-form-item label="新密码" prop="newPassword">
               <el-tooltip effect="dark" content="建议使用字母+数字组合" placement="top">
@@ -183,6 +185,7 @@ onMounted(() => {
           <el-upload
             class="avatar-uploader"
             action="#"
+            disabled
             :show-file-list="false"
             :on-success="handleAvatarSuccess"
             :before-upload="beforeAvatarUpload"
@@ -191,8 +194,6 @@ onMounted(() => {
             <el-avatar v-else :size="120" class="shadow-md">
               {{ userInfo.realName?.charAt(0) || 'U' }}
             </el-avatar>
-            <div class="mt-4 text-sm text-gray-500">点击上传新头像</div>
-            <el-icon class="text-gray-400 text-4xl mt-2"><Upload /></el-icon>
           </el-upload>
         </el-card>
 

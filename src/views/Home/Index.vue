@@ -5,14 +5,12 @@ import useUserStore from '@/stores/user.js'
 
 // --- 1. 模拟数据 (实际开发中应从 API 获取) ---
 const userStore = useUserStore()
-const currentRole = computed(() => userStore.userInfo?.user_type)
+const currentRole = computed(() => userStore.userInfo?.userType)
 
 // 核心统计数据
 const statsData = ref([
-  { label: '今日访客', value: 24, icon: '👥', color: 'bg-blue-500' },
   { label: '待缴费', value: 12, icon: '💰', color: 'bg-green-500' },
   { label: '待处理报修', value: 3, icon: '🔧', color: 'bg-yellow-500' },
-  { label: '已入住', value: 89, icon: '🏠', color: 'bg-purple-500' }
 ])
 
 // --- 2. Echarts 图表初始化 ---
@@ -86,7 +84,7 @@ const initRepairChart = () => {
     <!-- 顶部欢迎栏 -->
     <div class="mb-6 bg-white rounded-lg shadow-md p-6 flex justify-between items-center">
       <div>
-        <h1 class="text-2xl font-bold text-gray-800">欢迎回来，{{ userStore.userInfo?.real_name || '用户' }}！</h1>
+        <h1 class="text-2xl font-bold text-gray-800">欢迎回来，{{ userStore.userInfo?.realName || '用户' }}！</h1>
         <p class="text-gray-500 mt-1">这里是小区物业管理系统工作台</p>
       </div>
       <div class="text-right">

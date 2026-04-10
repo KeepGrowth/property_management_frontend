@@ -29,7 +29,8 @@ const queryParams = ref({
   billNo: '',
   billStatus: 1,
   pageNum: 1,
-  pageSize: 10
+  pageSize: 10,
+  isUser:1
 })
 
 // 模拟从后端获取数据
