@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { Search, Document, Clock, User } from '@element-plus/icons-vue'
 import useUserStore from '@/stores/user.js'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElPagination } from 'element-plus'
 import useNoticeStore from '@/stores/notice.js'
 
 const userStore = useUserStore()
@@ -17,17 +17,24 @@ const typeMap = {
   '4': { label: '节日问候', color: 'text-purple-500' }
 }
 const noticeStore = useNoticeStore()
+
 // 获取公告列表
+const queryParams = ref({
+  page: 1,
+  pageSize: 10
+})
+const total = ref()
 const fetchNotices = async () => {
   loading.value = true
   try {
     // API
-    const res = await noticeStore.getUserNoticeList()
+    const res = await noticeStore.getUserNoticeList(queryParams.value)
     console.log(res)
-    noticeList.value = res.data
+    noticeList.value = res.data.records
+    total.value = res.data.total
     // noticeList.value =  mockData
   } catch (error) {
-    ElMessage.error('加载公告失败'+error)
+    ElMessage.error('加载公告失败' + error)
   } finally {
     loading.value = false
   }
@@ -139,6 +146,20 @@ onMounted(() => {
         v-if="noticeList.length === 0"
         description="暂无公告"
         :image-size="100"
+      />
+    </div>
+
+    <!-- 分页组件 -->
+    <div class="flex justify-end mt-4">
+      <el-pagination
+        v-model:current-page="queryParams.page"
+        v-model:page-size="queryParams.pageSize"
+        :page-sizes="[5, 10, 15, 20]"
+        :background="true"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+        @size-change="fetchNotices"
+        @current-change="fetchNotices"
       />
     </div>
   </div>

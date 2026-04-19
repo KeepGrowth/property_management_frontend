@@ -145,12 +145,15 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 更新用户
+  // 登出
   async function logout() {
-    await router.push({name:'Login'})
+    await router.push({ name: 'Login' })
   }
 
-
+  // 删除用户
+  async function delUser(userId) {
+    return await api.delete(`/user/delete/${userId}`)
+  }
 
 
   return {
@@ -160,7 +163,8 @@ export const useUserStore = defineStore('user', () => {
     queryUserList,
     addUser,
     logout,
-    updateUser
+    updateUser,
+    delUser
   }
 }, {
   persist: true

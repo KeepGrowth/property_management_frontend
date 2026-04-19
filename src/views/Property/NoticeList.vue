@@ -12,7 +12,7 @@ import {
   ElSwitch,
   ElTooltip,
   ElMessageBox,
-  ElMessage, ElNotification
+  ElMessage, ElNotification, ElPagination
 } from 'element-plus'
 import { Search, Plus } from '@element-plus/icons-vue'
 import useNoticeStore from '@/stores/notice.js'
@@ -25,9 +25,11 @@ const dialogTitle = ref('')
 const isEdit = ref(false)
 
 // 搜索表单
-const searchForm = reactive({
+const queryParams = reactive({
   noticeTitle: '',
-  noticeType: ''
+  noticeType: '',
+  page: 1,
+  pageSize: 10
 })
 
 // 公告表单 (用于新增/编辑)
@@ -46,10 +48,12 @@ const rules = {
 }
 
 // 数据 ( API 调用)
-const loadMockData = async () => {
-  const res = await noticeStore.getNoticeList(searchForm)
+const total = ref()
+const fetchNoticeList = async () => {
+  const res = await noticeStore.getNoticeList(queryParams)
   if (res.code === 200) {
-    noticeList.value = res?.data.slice(0, 50)
+    noticeList.value = res?.data.records
+    total.value = res.data.total
   } else {
     ElNotification.error({
       title: '数据获取失败',
@@ -65,18 +69,18 @@ const handleSearch = () => {
   loading.value = true
   setTimeout(async () => {
     // 这里应该是 filter 过滤逻辑或者 API 请求
-    console.log(searchForm)
-    await loadMockData()
+    console.log(queryParams)
+    await fetchNoticeList()
     loading.value = false
-    ElMessage.success(`搜索 "${searchForm.noticeTitle}" 完成`)
+    ElMessage.success(`搜索 "${queryParams.noticeTitle}" 完成`)
   }, 500)
 }
 
 // 重置搜索
 const resetSearch = () => {
-  searchForm.noticeTitle = ''
-  searchForm.noticeType = ''
-  loadMockData()
+  queryParams.noticeTitle = ''
+  queryParams.noticeType = ''
+  fetchNoticeList()
 }
 
 // 打开新增对话框
@@ -109,13 +113,13 @@ const submitForm = async () => {
     await noticeStore.updateNotice(noticeForm)
     await ElMessageBox.alert('修改成功！', '提示', { type: 'success' })
     dialogVisible.value = false
-    await loadMockData() // 刷新列表
+    await fetchNoticeList() // 刷新列表
   } else {
     // 新增逻辑
     await noticeStore.addNotice(noticeForm)
     await ElMessageBox.alert('新增成功！', '提示', { type: 'success' })
     dialogVisible.value = false
-    await loadMockData() // 刷新列表
+    await fetchNoticeList() // 刷新列表
   }
   console.log('提交数据:', noticeForm)
 
@@ -132,7 +136,7 @@ const changeStatus = (row) => {
     const res = await noticeStore.changeNoticeStatus(row.id, row.status === 1 ? 0 : 1)
     if (res.code === 200) {
       ElMessage.success('状态更新成功')
-      await loadMockData()
+      await fetchNoticeList()
     } else {
       ElMessage.error('更新失败，请检查网络。')
     }
@@ -153,7 +157,7 @@ const handleDelete = (id) => {
 
 // 3. 生命周期
 onMounted(() => {
-  loadMockData()
+  fetchNoticeList()
 })
 </script>
 
@@ -176,17 +180,17 @@ onMounted(() => {
       </template>
 
       <!-- 搜索表单 -->
-      <el-form :model="searchForm" label-width="80px" class="flex flex-wrap gap-2" @submit.prevent>
+      <el-form :model="queryParams" label-width="80px" class="flex flex-wrap gap-2" @submit.prevent>
         <el-form-item label="公告标题">
           <el-input
-            v-model="searchForm.noticeTitle"
+            v-model="queryParams.noticeTitle"
             placeholder="请输入公告标题"
             clearable
             class="w-40"
           />
         </el-form-item>
         <el-form-item label="公告类型" style="width: 200px">
-          <el-select v-model="searchForm.noticeType" placeholder="请选择" clearable class="w-32">
+          <el-select v-model="queryParams.noticeType" placeholder="请选择" clearable class="w-32">
             <el-option label="维护" :value=1 />
             <el-option label="停供" :value=2 />
             <el-option label="活动" :value=3 />
@@ -239,14 +243,7 @@ onMounted(() => {
 
         <el-table-column prop="status" label="状态" width="180" align="center">
           <template #default="{ row }">
-            <el-switch
-              v-model="row.status"
-              :active-value="1"
-              :inactive-value="0"
-              @change="changeStatus(row)"
-              active-text="启用"
-              inactive-text="禁用"
-            />
+            <el-tag :type="row.status===1?'success':'warning'">{{ row.status===1?'启用':'禁用' }}</el-tag>
           </template>
         </el-table-column>
 
@@ -258,6 +255,19 @@ onMounted(() => {
         </el-table-column>
       </el-table>
     </el-card>
+    <!-- 分页组件 -->
+    <div class="flex justify-end mt-4">
+      <el-pagination
+        v-model:current-page="queryParams.page"
+        v-model:page-size="queryParams.pageSize"
+        :page-sizes="[5, 10, 15, 20]"
+        :background="true"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+        @size-change="fetchNoticeList"
+        @current-change="fetchNoticeList"
+      />
+    </div>
 
     <!-- 新增/编辑对话框 -->
     <el-dialog
@@ -288,8 +298,8 @@ onMounted(() => {
         </el-form-item>
         <el-form-item label="默认状态">
           <el-radio-group v-model="noticeForm.status">
-            <el-radio :label="1" :value=1>发布</el-radio>
-            <el-radio :label="0" :value=0>草稿</el-radio>
+            <el-radio :label="1" :value=1>启用</el-radio>
+            <el-radio :label="0" :value=0>禁用</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>

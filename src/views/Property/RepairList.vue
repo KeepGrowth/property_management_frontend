@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 import { Search, Refresh, Tickets, Check, Close } from '@element-plus/icons-vue'
 import useUserStore from '@/stores/user.js'
 import useRepairStore from '@/stores/repair.js'
-import { ElMessage, ElNotification } from 'element-plus'
+import { ElMessage, ElNotification, ElPagination } from 'element-plus'
 
 // --- 1. 状态定义 ---
 const userStore = useUserStore()
@@ -14,6 +14,9 @@ const dialogVisible = ref(false) // 控制处理弹窗
 const queryParams = ref({
   repairNo: '',
   repairStatus: null, // 状态筛选：1待分配, 2处理中, 3已完成
+  page: 1,
+  pageSize: 10,
+  isUser: 0
 })
 const total = ref(0)
 const repairList = ref([])
@@ -21,9 +24,11 @@ const repairList = ref([])
 
 // 状态映射 (用于展示不同颜色的Tag)
 const statusMap = {
-  1: { label: '待处理', type: 'danger' },
+  1: { label: '待受理', type: 'info' },
   2: { label: '处理中', type: 'warning' },
-  3: { label: '已完成', type: 'success' }
+  3: { label: '修理中', type: 'warning' },
+  4: { label: '已完成', type: 'primary' },
+  5: { label: '已评价', type: 'success' }
 }
 
 // --- 2. 逻辑方法 ---
@@ -35,8 +40,8 @@ const fetchList = async () => {
     // API调用
     const res = await repairStore.queryRepairList(queryParams.value)
     if (res.code === 200) {
-      repairList.value = res?.data.slice(0, 50)
-      total.value = repairList.value.length
+      repairList.value = res?.data.records
+      total.value = res.data.total
     } else {
       ElNotification.error('获取数据失败，请检查网络。')
       repairList.value = []
@@ -53,8 +58,8 @@ const fetchList = async () => {
 // 处理报修 (打开弹窗)
 const handleProcess = async (row) => {
   // 调用API进行处理
-  const res = await repairStore.changeRepairStatus(row.id,2)
-  if (res.code ===200){
+  const res = await repairStore.changeRepairStatus(row.id, 2)
+  if (res.code === 200) {
     ElNotification.success('状态已变为正在处理中，请及时处理后点击完成。')
     await fetchList()
   }
@@ -64,7 +69,7 @@ const handleProcess = async (row) => {
 const changeToFinish = async (repairId) => {
   try {
     // 更改状态
-    const res = await repairStore.changeRepairStatus(repairId, 3)
+    const res = await repairStore.changeRepairStatus(repairId, 4)
     if (res.code === 200) {
       ElMessage.success('处理成功')
       dialogVisible.value = false
@@ -168,20 +173,13 @@ const mockData = [
         class="bg-transparent"
       >
         <!-- 序号 -->
-        <el-table-column type="index" label="序号" width="60" align="center" />
+        <el-table-column type="index" label="序号" align="center" />
 
         <!-- 报修信息 -->
-        <el-table-column prop="repairNo" label="报修单号" width="140" />
+        <el-table-column prop="repairNo" label="报修单号" />
 
-        <el-table-column label="房屋ID" width="140">
-          <template #default="{ row }">
-            <div class="text-sm">
-              <div class="font-medium text-gray-800">{{ row.houseId }}</div>
-            </div>
-          </template>
-        </el-table-column>
 
-        <el-table-column prop="repairType" label="报修类型" width="100" />
+        <el-table-column prop="repairType" label="报修类型" />
 
         <!-- 问题描述 (带Tooltip) -->
         <el-table-column label="问题描述">
@@ -201,23 +199,9 @@ const mockData = [
           </template>
         </el-table-column>
 
-        <!-- 图片预览 -->
-        <el-table-column label="现场图片" width="200">
-          <template #default="{ row }">
-            <el-image
-              v-if="row.repairImg && row.repairImg.length > 0"
-              :src="row.repairImg"
-              :preview-src-list="row.repairImg"
-              fit="cover"
-              style="width: 40px; height: 40px; border-radius: 4px;"
-              class="cursor-pointer hover:shadow-md transition-shadow"
-            />
-            <el-tag v-else size="small">无</el-tag>
-          </template>
-        </el-table-column>
 
         <!-- 状态标签 -->
-        <el-table-column prop="status" label="状态" width="100" align="center">
+        <el-table-column prop="status" label="状态" align="center">
           <template #default="{ row }">
             <el-tag
               :type="statusMap[row.repairStatus]?.type"
@@ -231,11 +215,11 @@ const mockData = [
         </el-table-column>
 
         <!-- 操作 -->
-        <el-table-column label="操作" width="120" fixed="right">
+        <el-table-column label="操作" fixed="right">
           <template #default="{ row }">
             <!-- 待处理时显示“处理”按钮 -->
             <el-button
-              v-if="row.repairStatus === 1"
+              v-if="row.repairStatus===1"
               size="small"
               type="success"
               :icon="Check"
@@ -245,25 +229,26 @@ const mockData = [
             </el-button>
             <!-- 已完成显示“已完成”文字 -->
             <el-button class="text-green-600 font-medium"
-                       v-if="row.repairStatus===2"
+                       v-else-if="row.repairStatus<4"
                        type="danger"
                        size="small"
                        @click="changeToFinish(row.id)"
             >
               点击完成
             </el-button>
-            <el-button class="text-green-600 font-medium" size="small" type="info" v-if="row.repairStatus===3" disabled>已完成
+            <el-button v-else class="text-green-600 font-medium" size="small" type="info" v-if="row.repairStatus>=4"
+                       disabled>
+              已完成
             </el-button>
           </template>
         </el-table-column>
       </el-table>
-
-      <!-- 分页 -->
+      <!-- 分页组件 -->
       <div class="flex justify-end mt-4">
         <el-pagination
-          v-model:current-page="queryParams.pageNum"
+          v-model:current-page="queryParams.page"
           v-model:page-size="queryParams.pageSize"
-          :page-sizes="[10, 20, 50]"
+          :page-sizes="[5, 10, 15, 20]"
           :background="true"
           layout="total, sizes, prev, pager, next, jumper"
           :total="total"

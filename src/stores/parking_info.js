@@ -5,24 +5,26 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElNotification } from 'element-plus'
 import cleanObject from '@/utils/common.js'
 
-export const useFeeStore = defineStore('fee', () => {
+export const useParkingInfoStore = defineStore('parkingInfo', () => {
   // 条件查询查询某用户的账单列表
-  async function getUserFeeList(params) {
+  async function getUserParkingInfoList(params) {
     try {
       const clean_params = cleanObject(params)
-      const res = await api.get('/fee-bill/list', { params: clean_params })
+      const res = await api.get('/parking-info/list', { params: clean_params })
 
-      return res
+      if (res.code === 200) {
+        return res
+      }
     } catch (error) {
       throw error.response?.data || error
     }
   }
 
   // 条件查询所有的账单列表
-  async function queryAllFeeList(params) {
+  async function queryAllParkingInfoList(params) {
     try {
       const clean_params = cleanObject(params)
-      const res = await api.get('/fee-bill/list', { params: clean_params })
+      const res = await api.get('/parking-info/list', { params: clean_params })
 
       if (res.code === 200) {
         return res
@@ -34,11 +36,11 @@ export const useFeeStore = defineStore('fee', () => {
 
 
   // 支付对应id的账单
-  async function payFee(feeId) {
+  async function payParkingInfo(parkingInfoId) {
     try {
-      const res = await api.put('/fee-bill', {
-        id: feeId,
-        billStatus: 2
+      const res = await api.put('/parking-info', {
+        id: parkingInfoId,
+        status:2
       })
       if (res.code === 200) {
         return res
@@ -49,11 +51,10 @@ export const useFeeStore = defineStore('fee', () => {
   }
 
   return {
-    getUserFeeList,
-    payFee,
-    queryAllFeeList
+    getUserParkingInfoList,
+    queryAllParkingInfoList
   }
 }, {
   persist: true
 })
-export default useFeeStore
+export default useParkingInfoStore

@@ -7,9 +7,10 @@ import cleanObject from '@/utils/common.js'
 
 export const useRepairStore = defineStore('repair', () => {
   // 条件查询某用户的报修列表
-  async function getUserRepairList() {
+  async function getUserRepairList(queryParams) {
     try {
-      const res = await api.get('/repair-order/list')
+      const cleanParams = cleanObject(queryParams)
+      const res = await api.get('/repair-order/list', { params: cleanParams })
       if (res.code === 200) {
         return res
       }
@@ -34,11 +35,11 @@ export const useRepairStore = defineStore('repair', () => {
   }
 
   // 更改报修单的状态
-  async function changeRepairStatus(repairId,status) {
+  async function changeRepairStatus(repairId, status) {
     try {
       const res = await api.put('/repair-order', {
-        id:repairId,
-        repairStatus:status
+        id: repairId,
+        repairStatus: status
       })
       if (res.code === 200) {
         return res
@@ -48,11 +49,36 @@ export const useRepairStore = defineStore('repair', () => {
     }
   }
 
+  // 新增报修单
+  async function addRepairOrder(newRepairOrderForm) {
+    try {
+      console.log(newRepairOrderForm)
+      const cleanParams = cleanObject(newRepairOrderForm)
+      const res = await api.post('/repair-order', cleanParams)
+      return res
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  }
+
+  // 更新保修单
+  async function updateRepairOrder(repairOrderForm) {
+    try {
+      const cleanParams = cleanObject(repairOrderForm)
+      const res = await api.put(`/repair-order`, cleanParams)
+      return res
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  }
+
 
   return {
     getUserRepairList,
     queryRepairList,
-    changeRepairStatus
+    changeRepairStatus,
+    addRepairOrder,
+    updateRepairOrder
   }
 }, {
   persist: true

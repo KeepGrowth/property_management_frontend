@@ -1,6 +1,15 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { ElButton, ElTable, ElTableColumn, ElTag, ElMessage, ElMessageBox, ElNotification } from 'element-plus'
+import {
+  ElButton,
+  ElTable,
+  ElTableColumn,
+  ElTag,
+  ElMessage,
+  ElMessageBox,
+  ElNotification,
+  ElPagination
+} from 'element-plus'
 import { Search, Plus, Edit, Delete, Refresh } from '@element-plus/icons-vue'
 import useUserStore from '@/stores/user.js'
 
@@ -11,11 +20,14 @@ const dialogVisible = ref(false)
 const isEdit = ref(false)
 
 // 搜索表单
-const searchForm = ref({
+const queryParams = ref({
   username: '',
   realName: '',
-  userType: null
+  userType: null,
+  page: 1,
+  pageSize: 10
 })
+const total = ref()
 
 // 表单数据 (用于弹窗)
 const formData = ref({
@@ -59,9 +71,10 @@ const userStore = useUserStore()
 // 获取列表
 const fetchList = async () => {
   loading.value = true
-  const res = await userStore.queryUserList(searchForm.value)
+  const res = await userStore.queryUserList(queryParams.value)
   if (res.code === 200) {
-    userList.value = res.data
+    userList.value = res.data.records
+    total.value = res.data.total
     loading.value = false
     ElNotification.success('用户数据获取成功')
   } else {
@@ -71,8 +84,8 @@ const fetchList = async () => {
 
 // 重置搜索
 const handleReset = async () => {
-  searchForm.value = { username: '', real_name: '', userType: '' }
-  await fetchList(searchForm.value)
+  queryParams.value = { username: '', real_name: '', userType: '' }
+  await fetchList(queryParams.value)
 }
 
 // 打开新增弹窗
@@ -95,13 +108,13 @@ const submitForm = async () => {
     const res = await userStore.updateUser(formData.value)
     if (res.code === 200) {
       ElMessage.success(`更新用户 ${formData.value.realName} 成功`)
-      await fetchList(searchForm.value)
+      await fetchList(queryParams.value)
     }
   } else {
     const res = await userStore.addUser(formData.value)
     if (res.code === 200) {
       ElMessage.success(`更新用户 ${formData.value.realName} 成功`)
-      await fetchList(searchForm.value)
+      await fetchList(queryParams.value)
     }
   }
   dialogVisible.value = false
@@ -109,15 +122,21 @@ const submitForm = async () => {
 }
 
 // 删除用户
-const handleDelete = (id, name) => {
-  ElMessageBox.confirm(`确定要删除用户 "${name}" 吗？删除后不可恢复！`, '警告', {
+const handleDelete = async (id) => {
+  ElMessageBox.confirm(`确定要删除用户吗？删除后不可恢复！`, '警告', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning',
     center: true
-  }).then(() => {
-    ElMessage.success('删除成功')
-    fetchList() // 刷新
+  }).then(async () => {
+    const res = await userStore.delUser(id)
+    if (res.code===200){
+      ElMessage.success('删除成功')
+      await fetchList() // 刷新
+    }else{
+      ElMessage.error('删除失败')
+    }
+
   }).catch(() => {
     ElMessage.info('已取消删除')
   })
@@ -157,10 +176,10 @@ onMounted(() => {
       <div class="mb-4 space-y-4">
 
         <!-- 搜索表单 -->
-        <el-form :inline="true" :model="searchForm" class="bg-white p-4 rounded-lg shadow-sm flex flex-wrap gap-2">
+        <el-form :inline="true" :model="queryParams" class="bg-white p-4 rounded-lg shadow-sm flex flex-wrap gap-2">
           <el-form-item label="账号">
             <el-input
-              v-model="searchForm.username"
+              v-model="queryParams.username"
               placeholder="请输入账号"
               clearable
               class="w-32"
@@ -168,14 +187,14 @@ onMounted(() => {
           </el-form-item>
           <el-form-item label="姓名">
             <el-input
-              v-model="searchForm.realName"
+              v-model="queryParams.realName"
               placeholder="请输入姓名"
               clearable
               class="w-32"
             />
           </el-form-item>
           <el-form-item label="角色" style="width: 200px">
-            <el-select v-model="searchForm.userType" placeholder="请选择角色" clearable class="w-32">
+            <el-select v-model="queryParams.userType" placeholder="请选择角色" clearable class="w-32">
               <el-option label="业主" :value="1" />
               <el-option label="物业人员" :value="2" />
               <el-option label="管理员" :value="3" />
@@ -243,17 +262,30 @@ onMounted(() => {
             >
               编辑
             </el-button>
-            <el-button
-              size="small"
-              :icon="Delete"
-              type="danger"
-              @click="handleDelete(scope.row.id, scope.row.realName)"
-            >
-              删除
-            </el-button>
+<!--            <el-button-->
+<!--              size="small"-->
+<!--              :icon="Delete"-->
+<!--              type="danger"-->
+<!--              @click="handleDelete(scope.row.id)"-->
+<!--            >-->
+<!--              删除-->
+<!--            </el-button>-->
           </template>
         </el-table-column>
       </el-table>
+      <!-- 分页组件 -->
+      <div class="flex justify-end mt-4">
+        <el-pagination
+          v-model:current-page="queryParams.page"
+          v-model:page-size="queryParams.pageSize"
+          :page-sizes="[5, 10, 15, 20]"
+          :background="true"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+          @size-change="fetchList"
+          @current-change="fetchList"
+        />
+      </div>
     </el-card>
 
     <!-- 新增/编辑对话框 -->
@@ -301,6 +333,7 @@ onMounted(() => {
         </span>
       </template>
     </el-dialog>
+
   </div>
 </template>
 

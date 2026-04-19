@@ -28,9 +28,9 @@ const currentBillId = ref(null)
 const queryParams = ref({
   billNo: '',
   billStatus: 1,
-  pageNum: 1,
+  page: 1,
   pageSize: 10,
-  isUser:1
+  isUser: 1
 })
 
 // 模拟从后端获取数据
@@ -38,21 +38,11 @@ const fetchData = async () => {
   loading.value = true
   // API调用
   const res = await feeStore.getUserFeeList(queryParams.value)
-  console.log(res.data)
 
   setTimeout(() => {
     // 生成模拟数据
-    const mockData = Array.from({ length: 15 }, (_, i) => ({
-      id: i + 1 + (queryParams.value.pageNum - 1) * queryParams.value.pageSize,
-      billNo: `BILL${new Date().getFullYear()}${String(1000 + i).slice(-4)}`,
-      houseId: 'A栋 1001室',
-      feeType: i % 3 === 0 ? '物业费' : i % 3 === 1 ? '电费' : '水费',
-      feeAmount: (Math.random() * 500 + 50).toFixed(2),
-      billStatus: i % 4 === 0 ? 1 : 2, // 1:未缴, 2:已缴
-      createTime: new Date().toLocaleString()
-    }))
-    feeList.value = res?.data
-    total.value = res?.data?.total || 1 // 模拟总条数
+    feeList.value = res?.data.records
+    total.value = res?.data?.total
     loading.value = false
   }, 800)
 }
@@ -67,14 +57,14 @@ const handlePay = (id) => {
 const confirmPay = async () => {
   // 发送请求进行支付。
   const res = await feeStore.payFee(currentBillId.value)
-  if (res.code ===200){
+  if (res.code === 200) {
     loading.value = true
     setTimeout(async () => {
       ElMessage.success('支付成功！')
       dialogVisible.value = false
       await fetchData() // 刷新列表
     }, 500)
-  }else{
+  } else {
     ElMessage.error('支付失败,请联系物业管理员！')
     dialogVisible.value = false
     await fetchData() // 刷新列表
@@ -112,7 +102,7 @@ onMounted(() => {
       <el-form :inline="true" :model="queryParams" class="flex flex-wrap gap-2 items-center justify-center">
         <el-form-item label="账单号">
           <el-input
-            v-model="queryParams.billNo"
+            v-model="queryParams.parkingNo"
             placeholder="请输入账单号"
             :prefix-icon="Search"
             class="w-40"
@@ -144,37 +134,37 @@ onMounted(() => {
         :header-cell-style="{ background: '#f8fafc', color: '#1e293b', fontWeight: '600' }"
       >
         <!-- 序号列 -->
-        <el-table-column type="index" label="序号" width="60" align="center" />
+        <el-table-column type="index" label="序号"  align="center" />
 
         <!-- 核心数据列 -->
-        <el-table-column prop="billNo" label="账单编号" width="180">
+        <el-table-column prop="billNo" label="账单编号" >
           <template #default="{ row }">
             <div class="font-mono text-sm text-blue-600">#{{ row.billNo }}</div>
           </template>
         </el-table-column>
 
-        <el-table-column prop="houseId" label="房屋信息(ID)" width="120" />
+        <el-table-column prop="houseId" label="房屋信息(ID)"  />
 
-        <el-table-column prop="feeType" label="费用类型" width="100">
+        <el-table-column prop="feeType" label="费用类型" >
           <template #default="{ row }">
             <el-tag
               :type="row.feeType === '物业费' ? 'success' : row.feeType === '电费' ? 'warning' : 'danger'"
               effect="light"
             >
-              {{ row.feeType ===1?'物业费':'电费' }}
+              {{ row.feeType === 1 ? '物业费' : '电费' }}
             </el-tag>
           </template>
         </el-table-column>
 
         <!-- 金额列：使用红色高亮 -->
-        <el-table-column prop="feeAmount" label="金额 (元)" width="120" align="center">
+        <el-table-column prop="feeAmount" label="金额 (元)"  align="center">
           <template #default="{ row }">
             <span class="text-red-500 font-bold">¥ {{ row.feeAmount }}</span>
           </template>
         </el-table-column>
 
         <!-- 状态列：使用 Tag 区分 -->
-        <el-table-column prop="billStatus" label="状态" width="100" align="center">
+        <el-table-column prop="billStatus" label="状态"  align="center">
           <template #default="{ row }">
             <el-tag
               :type="row.billStatus === 2 ? 'success' : 'info'"
@@ -185,10 +175,10 @@ onMounted(() => {
           </template>
         </el-table-column>
 
-        <el-table-column prop="startTime" label="生成时间" width="160" />
+        <el-table-column prop="startTime" label="生成时间"  />
 
         <!-- 操作列 -->
-        <el-table-column label="操作" width="120" fixed="right">
+        <el-table-column label="操作"  fixed="right">
           <template #default="{ row }">
             <!-- 仅当状态为“未缴”时显示支付按钮 -->
             <el-button
@@ -208,7 +198,7 @@ onMounted(() => {
       <!-- 分页组件 -->
       <div class="flex justify-end mt-4">
         <el-pagination
-          v-model:current-page="queryParams.pageNum"
+          v-model:current-page="queryParams.page"
           v-model:page-size="queryParams.pageSize"
           :page-sizes="[5, 10, 15, 20]"
           :background="true"

@@ -12,7 +12,7 @@ import {
   ElFormItem,
   ElTag,
   ElMessageBox,
-  ElMessage
+  ElMessage, ElPagination
 } from 'element-plus'
 import { Search, Plus, Download, Refresh, Check } from '@element-plus/icons-vue'
 import useFeeStore from '@/stores/fee'
@@ -37,14 +37,16 @@ interface FeeBill {
 // 表格数据
 const billList = ref<FeeBill[]>([])
 const loading = ref(false)
-const total = ref(0)
+const total = ref()
 
 // 搜索表单
-const searchForm = reactive({
+const queryParams = ref({
   billNo: '',
   feeType: '',
   billStatus: 2,
-  isUser: 0
+  isUser: 0,
+  page: 1,
+  pageSize: 10
 })
 
 
@@ -52,7 +54,7 @@ const searchForm = reactive({
 // 模拟账单类型
 const feeTypes = [
   { label: '物业费', value: 1 },
-  { label: '水电费', value: 2 },
+  { label: '水电费', value: 2 }
 ]
 
 // 模拟状态标签
@@ -65,27 +67,27 @@ const getStatusTag = (status: BillStatus) => {
 // --- 4. 核心方法 ---
 const feeStore = useFeeStore()
 // 模拟获取数据
-const fetchData = async () => {
+const fetchFeeList = async () => {
   loading.value = true
-  const res = await feeStore.getUserFeeList(searchForm)
+  const res = await feeStore.getUserFeeList(queryParams.value)
   if (res.code === 200) {
-    billList.value = res.data.slice(0,50)
+    billList.value = res.data.records
+    total.value = res.data.total
     loading.value = false
   }
-  total.value = billList.value.length
 }
 
 // 搜索/重置
 const handleSearch = async () => {
-  console.log('搜索条件:', searchForm)
-  await fetchData()
+  console.log('搜索条件:', queryParams)
+  await fetchFeeList()
 }
 const handleReset = async () => {
   // 重置表单
-  searchForm.keyword = ''
-  searchForm.feeType = ''
-  searchForm.billStatus = ''
-  await fetchData()
+  queryParams.keyword = ''
+  queryParams.feeType = ''
+  queryParams.billStatus = ''
+  await fetchFeeList()
 }
 
 
@@ -96,7 +98,7 @@ const handlePay = (row: FeeBill) => {
     confirmButtonText: '确定'
   }).then(async () => {
     await feeStore.payFee(row.id)
-    await fetchData()
+    await fetchFeeList()
     ElMessage.success('状态已更新')
   })
 }
@@ -108,8 +110,10 @@ const handleExport = () => {
 
 // --- 5. 生命周期 ---
 onMounted(() => {
-  fetchData()
+  fetchFeeList()
 })
+
+
 </script>
 
 <template>
@@ -125,10 +129,10 @@ onMounted(() => {
       </template>
 
       <!-- 搜索表单 -->
-      <el-form :inline="true" :model="searchForm" class="flex flex-wrap gap-2" label-width="auto">
+      <el-form :inline="true" :model="queryParams" class="flex flex-wrap gap-2" label-width="auto">
         <el-form-item label="账单号">
           <el-input
-            v-model="searchForm.billNo"
+            v-model="queryParams.billNo"
             placeholder="账单号"
             clearable
             class="w-40"
@@ -137,7 +141,7 @@ onMounted(() => {
         </el-form-item>
 
         <el-form-item label="费用类型" style="width: 200px">
-          <el-select v-model="searchForm.feeType" placeholder="全部" clearable class="w-32">
+          <el-select v-model="queryParams.feeType" placeholder="全部" clearable class="w-32">
             <el-option
               v-for="item in feeTypes"
               :key="item.value"
@@ -148,7 +152,7 @@ onMounted(() => {
         </el-form-item>
 
         <el-form-item label="状态" style="width: 200px">
-          <el-select v-model="searchForm.billStatus" placeholder="全部" clearable>
+          <el-select v-model="queryParams.billStatus" placeholder="全部" clearable>
             <el-option label="已缴" :value="2" />
             <el-option label="未缴" :value="1" />
           </el-select>
@@ -172,36 +176,37 @@ onMounted(() => {
         stripe
       >
         <!-- 选择框 -->
-        <el-table-column type="selection" width="55" align="center" />
+        <el-table-column type="selection"  align="center" />
 
         <!-- 账单号 -->
-        <el-table-column prop="billNo" label="账单号" width="180" />
+        <el-table-column prop="billNo" label="账单号"  />
 
         <!-- 房屋信息 -->
-        <el-table-column prop="houseId" label="房屋信息(Id)" width="150" />
+        <el-table-column prop="houseId" label="房屋信息(Id)"  />
 
         <!-- 业主信息 -->
-        <el-table-column prop="ownerId" label="业主ID" width="100" />
+        <el-table-column prop="ownerId" label="业主ID"  />
 
         <!-- 费用类型 -->
-        <el-table-column prop="feeType" label="类型" width="100">
+        <el-table-column prop="feeType" label="类型" >
           <template #default="scope">
             <el-tag
               :type="scope.row.feeType==='1'?'primary':'warning'"
               size="small"
-            >{{ scope.row.feeType==='1'?'物业费':'水电费' }}</el-tag>
+            >{{ scope.row.feeType === '1' ? '物业费' : '水电费' }}
+            </el-tag>
           </template>
         </el-table-column>
 
         <!-- 金额 -->
-        <el-table-column prop="feeAmount" label="金额(元)" width="120" align="right">
+        <el-table-column prop="feeAmount" label="金额(元)"  align="right">
           <template #default="scope">
             <span class="font-medium text-lg text-gray-900">¥{{ scope.row.feeAmount.toFixed(2) }}</span>
           </template>
         </el-table-column>
 
         <!-- 状态 -->
-        <el-table-column prop="billStatus" label="状态" width="150">
+        <el-table-column prop="billStatus" label="状态">
           <template #default="scope">
             <el-tag
               :type="getStatusTag(scope.row.billStatus).type"
@@ -213,14 +218,14 @@ onMounted(() => {
         </el-table-column>
 
         <!-- 时间范围 -->
-        <el-table-column prop="startTime" label="计费周期" width="180">
+        <el-table-column prop="startTime" label="计费周期">
           <template #default="scope">
             {{ scope.row.startTime }} 至 {{ scope.row.endTime }}
           </template>
         </el-table-column>
 
         <!-- 操作 -->
-        <el-table-column label="操作" fixed="right" width="180">
+        <el-table-column label="操作" fixed="right" >
           <template #default="scope">
             <el-button
               size="small"
@@ -242,18 +247,20 @@ onMounted(() => {
           </template>
         </el-table-column>
       </el-table>
-
-      <!-- 分页 (模拟) -->
-      <div class="flex justify-end mt-4">
-        <el-pagination
-          background
-          layout="total, prev, pager, next"
-          :total="total"
-          :page-size="10"
-          @current-change="handleSearch"
-        />
-      </div>
     </el-card>
+    <!-- 分页组件 -->
+    <div class="flex justify-end mt-4">
+      <el-pagination
+        v-model:current-page="queryParams.page"
+        v-model:page-size="queryParams.pageSize"
+        :page-sizes="[5, 10, 15, 20]"
+        :background="true"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+        @size-change="fetchFeeList"
+        @current-change="fetchFeeList"
+      />
+    </div>
   </div>
 </template>
 

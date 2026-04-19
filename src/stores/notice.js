@@ -7,9 +7,10 @@ import cleanObject from '@/utils/common.js'
 
 export const useNoticeStore = defineStore('notice', () => {
   // 条件查询用户公告列表
-  async function getUserNoticeList() {
+  async function getUserNoticeList(queryParams) {
     try {
-      const res = await api.get('/notice/list')
+      const cleanParams = cleanObject(queryParams)
+      const res = await api.get('/notice/list', { params: cleanParams })
       if (res.code === 200) {
         return res
       }

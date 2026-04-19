@@ -97,14 +97,20 @@ const protectedRoutes = [
         name: 'OwnerNotice',
         component: () => import('@/views/Owner/NoticeList.vue'),
         meta: { title: '公告查看', icon: 'Document', roles: [1] }
+      },
+      {
+        path: 'owner/parking',
+        name: 'OwnerParking',
+        component: () => import('@/views/Owner/ParkingList.vue'),
+        meta: { title: '公告查看', icon: 'Document', roles: [1] }
       }
     ]
-  }
+  },
   // 捕获所有未定义的路由，跳转到 404
-  // {
-  //   path: '/:pathMatch(.*)*',
-  //   redirect: '/404'
-  // }
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/404'
+  }
 ]
 
 // 合并路由

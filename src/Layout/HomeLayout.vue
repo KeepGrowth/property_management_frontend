@@ -94,6 +94,7 @@ const breadcrumbList = computed(() => {
             <el-menu-item index="/home/owner/fee">我的账单</el-menu-item>
             <el-menu-item index="/home/owner/repair">我的报修</el-menu-item>
             <el-menu-item index="/home/owner/notice">查看公告</el-menu-item>
+            <el-menu-item index="/home/owner/parking">我的车位</el-menu-item>
           </el-sub-menu >
 
           <!-- 物业模块 -->

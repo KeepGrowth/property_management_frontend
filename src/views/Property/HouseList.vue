@@ -1,7 +1,16 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { Search, Plus, Edit, Delete } from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { Search, Plus, Edit, Delete, Refresh } from '@element-plus/icons-vue'
+import {
+  ElButton,
+  ElForm,
+  ElFormItem,
+  ElInput,
+  ElMessage,
+  ElMessageBox,
+  ElNotification,
+  ElPagination
+} from 'element-plus'
 import useHouseStore from '@/stores/house.js'
 
 const houseStore = useHouseStore()
@@ -11,13 +20,11 @@ const loading = ref(false) // 加载状态
 const tableData = ref([]) // 表格数据
 const total = ref(0) // 总条数
 const queryParams = ref({
-  pageNum: 1,
+  page: 1,
   pageSize: 10,
   buildingNo: null,
   roomNo: null
 })
-
-
 
 
 // 3. 核心方法：获取列表
@@ -28,10 +35,10 @@ const getList = async () => {
     await new Promise(resolve => setTimeout(resolve, 500))
 
     // 调用数据
-    const mockData = await houseStore.getHouseList(queryParams.value)
+    const res = await houseStore.getHouseList(queryParams.value)
 
-    tableData.value = mockData?.data.slice(0,50)
-    total.value = mockData.total || 1
+    tableData.value = res.data.records
+    total.value = res.data.total
   } catch (error) {
     console.error('获取数据失败:', error)
     ElMessage.error('数据加载失败')
@@ -42,39 +49,18 @@ const getList = async () => {
 
 // 4. 搜索与重置
 const handleQuery = async () => {
-  queryParams.value.pageNum = 1
+  queryParams.value.page = 1
   await getList()
 }
 
 const resetQuery = () => {
   queryParams.value = {
-    pageNum: 1,
+    page: 1,
     pageSize: 10,
     buildingNo: '',
     roomNo: ''
   }
   getList()
-}
-
-// 5. 分页处理
-const handleSizeChange = (val) => {
-  queryParams.value.pageSize = val
-  getList()
-}
-
-const handleCurrentChange = (val) => {
-  queryParams.value.pageNum = val
-  getList()
-}
-
-// 6. 操作方法 (暂定)
-const handleAdd = () => {
-  ElMessage.info('点击了新增按钮（功能待开发）')
-  // 这里通常会打开一个弹窗 (Dialog)
-}
-
-const handleEdit = (row) => {
-  ElMessage.success(`编辑房屋：${row.buildingNo}-${row.roomNo}`)
 }
 
 const handleDelete = (row) => {
@@ -88,7 +74,7 @@ const handleDelete = (row) => {
     await houseStore.deleteHouse(row.id)
     await getList()
   }).catch((e) => {
-    ElMessage.info('已取消删除'+e)
+    ElMessage.info('已取消删除' + e)
   })
 }
 
@@ -96,6 +82,66 @@ const handleDelete = (row) => {
 onMounted(() => {
   getList()
 })
+
+// 模态框
+const dialogVisible = ref(false)
+const dialogTitle = ref('')
+const houseForm = ref({
+  id: null,
+  buildingNo: '',
+  unitNo: '',
+  roomNo: '',
+  houseArea: null,
+  ownerId: null
+})
+
+// 6. 操作方法 (暂定)
+const handleAdd = () => {
+  dialogVisible.value = true
+}
+
+const handleEdit = (row) => {
+  houseForm.value = row
+  dialogVisible.value = true
+}
+
+// 确认提交
+const submitForm = async () => {
+  if (houseForm.value.id) {
+    // 更新操作
+    const res = await houseStore.updateHouse(houseForm.value)
+    if (res.code === 200) {
+      ElNotification.success({
+        title: '成功',
+        message: res.message
+      })
+      dialogVisible.value = false
+      await getList()
+    } else {
+      ElNotification.error({
+        title: '失败',
+        message: res.message
+      })
+    }
+  } else {
+    // 新增操作
+    const res = await houseStore.addHouse(houseForm.value)
+    if (res.code === 200) {
+      ElNotification.success({
+        title: '成功',
+        message: res.message
+      })
+      dialogVisible.value = false
+      await getList()
+    } else {
+      ElNotification.error({
+        title: '失败',
+        message: res.message
+      })
+    }
+  }
+
+}
 </script>
 
 <template>
@@ -107,17 +153,16 @@ onMounted(() => {
       <template #header>
         <div class="flex items-center justify-between">
           <span class="text-lg font-semibold text-gray-800">📋 筛选查询</span>
-<!--          <el-button-->
-<!--            :icon="Plus"-->
-<!--            type="primary"-->
-<!--            @click="handleAdd"-->
-<!--            class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500"-->
-<!--          >-->
-<!--            新增房屋-->
-<!--          </el-button>-->
+          <el-button
+            :icon="Plus"
+            type="primary"
+            @click="handleAdd"
+            class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500"
+          >
+            分配房屋
+          </el-button>
         </div>
       </template>
-
       <el-form :inline="true" :model="queryParams" class="demo-form-inline flex flex-wrap gap-2">
         <el-form-item label="楼栋号">
           <el-input
@@ -188,15 +233,15 @@ onMounted(() => {
         <!-- 操作列 -->
         <el-table-column label="操作" width="180" align="center" fixed="right">
           <template #default="scope">
-<!--            <el-button-->
-<!--              :icon="Edit"-->
-<!--              size="small"-->
-<!--              type="primary"-->
-<!--              link-->
-<!--              @click="handleEdit(scope.row)"-->
-<!--            >-->
-<!--              编辑-->
-<!--            </el-button>-->
+            <el-button
+              :icon="Edit"
+              size="small"
+              type="primary"
+              link
+              @click="handleEdit(scope.row)"
+            >
+              编辑
+            </el-button>
             <el-popconfirm
               title="确定删除吗？"
               @confirm="handleDelete(scope.row)"
@@ -211,20 +256,62 @@ onMounted(() => {
       </el-table>
 
       <!-- 分页组件 -->
-      <div class="flex justify-end mt-4 pt-4 border-t border-gray-100">
+      <div class="flex justify-end mt-4">
         <el-pagination
-          v-model:current-page="queryParams.pageNum"
+          v-model:current-page="queryParams.page"
           v-model:page-size="queryParams.pageSize"
-          :page-sizes="[5, 10, 20, 50]"
+          :page-sizes="[5, 10, 15, 20]"
           :background="true"
           layout="total, sizes, prev, pager, next, jumper"
           :total="total"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-          class="flex items-center"
+          @size-change="getList"
+          @current-change="getList"
         />
       </div>
     </el-card>
+
+    <!-- 新增/编辑对话框 -->
+    <el-dialog
+      v-model="dialogVisible"
+      :title="dialogTitle"
+      width="500"
+      center
+    >
+      <el-form :model="houseForm" label-width="90px">
+        <el-form-item label="楼栋号" prop="buildingNo">
+          <el-input v-model="houseForm.buildingNo" placeholder="请输入标题" />
+        </el-form-item>
+        <el-form-item label="单元号" prop="unitNo">
+          <el-input v-model="houseForm.unitNo" placeholder="请输入单元号" />
+        </el-form-item>
+        <el-form-item label="房号" prop="roomNo">
+          <el-input
+            v-model="houseForm.roomNo"
+            type="textarea"
+            :rows="4"
+            placeholder="请输入房号..."
+          />
+        </el-form-item>
+        <el-form-item label="面积" prop="houseArea">
+          <el-input
+            v-model.number="houseForm.houseArea"
+            placeholder="请输入面积..."
+          />
+        </el-form-item>
+        <el-form-item label="请分配业主" prop="ownerId">
+          <el-input
+            v-model.number="houseForm.ownerId"
+            placeholder="请务必输入现有的业主ID..."
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitForm">确认提交</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
