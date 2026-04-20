@@ -109,6 +109,7 @@ const breadcrumbList = computed(() => {
             <el-menu-item index="/home/property/fee">账单管理</el-menu-item>
             <el-menu-item index="/home/property/notice">公告管理</el-menu-item>
             <el-menu-item index="/home/property/repair">维修管理</el-menu-item>
+            <el-menu-item index="/home/property/parking">车位管理</el-menu-item>
           </el-sub-menu>
           <!-- 系统管理员模块 -->
           <el-sub-menu index="admin" v-if="userStore.userInfo.userType===3">

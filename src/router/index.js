@@ -29,7 +29,7 @@ const protectedRoutes = [
     path: '/home',
     name: 'HomeLayout',
     component: () => import('@/Layout/HomeLayout.vue'), // 假设主布局组件在此路径
-    meta: { title: '工作台', requiresAuth: true,roles:[1,2,3] },
+    meta: { title: '工作台', requiresAuth: true, roles: [1, 2, 3] },
     children: [
       // A. 首页与通用模块 (所有角色可见)
       {
@@ -77,6 +77,12 @@ const protectedRoutes = [
         name: 'PropertyNotice',
         component: () => import('@/views/Property/NoticeList.vue'),
         meta: { title: '公告管理', icon: 'Notification', roles: [2] }
+      },
+      {
+        path: 'property/parking',
+        name: 'PropertyParking',
+        component: () => import('@/views/Property/ParkingList.vue'),
+        meta: { title: '车位管理', icon: 'Notification', roles: [2] }
       },
 
       // D. 业主模块 (仅 owner 可见)
@@ -137,12 +143,12 @@ router.beforeEach((to, from, next) => {
 
 
   // 3. 如果访问的是需要登录的页面
-  if (to.meta.roles.includes(userStore.userInfo.userType) ) {
+  if (to.meta.roles.includes(userStore.userInfo.userType)) {
     // 有 Token，允许进入
-      next()
+    next()
   } else {
     // 没有 Token，跳转回登录页
-    console.log("无法跳转")
+    console.log('无法跳转')
     next('/login')
   }
 })

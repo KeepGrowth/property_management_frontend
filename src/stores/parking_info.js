@@ -35,24 +35,33 @@ export const useParkingInfoStore = defineStore('parkingInfo', () => {
   }
 
 
-  // 支付对应id的账单
-  async function payParkingInfo(parkingInfoId) {
-    try {
-      const res = await api.put('/parking-info', {
-        id: parkingInfoId,
-        status:2
-      })
-      if (res.code === 200) {
-        return res
-      }
-    } catch (error) {
-      throw error.response?.data || error
-    }
+  // 删除车位
+  async function delParking(parkingId) {
+    const res = await api.delete(`/parking-info/${parkingId}`)
+    return res
   }
+
+  // 新增车位分配
+  async function addParking(parkingForm) {
+    const cleanParams = cleanObject(parkingForm)
+    const res = await api.post('/parking-info', cleanParams)
+    return res
+  }
+
+  // 更改车位分配信息
+  async function updateParking(parkingForm) {
+    const cleanParams = cleanObject(parkingForm)
+    const res = await api.put('/parking-info', cleanParams)
+    return res
+  }
+
 
   return {
     getUserParkingInfoList,
-    queryAllParkingInfoList
+    queryAllParkingInfoList,
+    delParking,
+    addParking,
+    updateParking
   }
 }, {
   persist: true
