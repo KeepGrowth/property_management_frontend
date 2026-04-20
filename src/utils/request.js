@@ -3,8 +3,8 @@ import useUserStore from '@/stores/user.js'
 import { ElMessage, ElNotification } from 'element-plus'
 // 开发环境：本地Flask地址 | 生产环境：运行npm run build的时候自动替换为线上接口地址
 const baseURL = process.env.NODE_ENV === 'development'
-  ? 'http://859707243.xyz:21351'  // 开发环境-本地地址
-  : 'http://859707243.xyz:21351' // 生产环境-线上地址（替换成你的真实地址）
+  ? 'https://859707243.xyz:21351'  // 开发环境-本地地址
+  : 'https://859707243.xyz:21351' // 生产环境-线上地址（替换成你的真实地址）
 
 
 // 1. 创建axios实例（只做基础配置，不在headers中写死Token）
