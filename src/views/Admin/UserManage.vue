@@ -220,13 +220,13 @@ onMounted(() => {
         :header-cell-style="{ background: '#f8fafc', color: '#1e293b', fontWeight: '600' }"
         v-loading="loading"
       >
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="username" label="账号" width="150" />
-        <el-table-column prop="realName" label="姓名" width="120" />
-        <el-table-column prop="phone" label="手机号" width="150" />
+        <el-table-column prop="id" label="ID"  />
+        <el-table-column prop="username" label="账号"  />
+        <el-table-column prop="realName" label="姓名"  />
+        <el-table-column prop="phone" label="手机号"  />
 
         <!-- 角色列：使用 Tag 标签可视化 -->
-        <el-table-column prop="userType" label="角色" width="120">
+        <el-table-column prop="userType" label="角色" >
           <template #default="scope">
             <el-tag
               :type="roleMap[scope.row.userType]?.type || 'info'"
@@ -239,7 +239,7 @@ onMounted(() => {
         </el-table-column>
 
         <!-- 状态列 -->
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column prop="status" label="状态" >
           <template #default="scope">
             <el-tag
               :type="statusMap[scope.row.status]?.type || 'info'"
@@ -251,7 +251,7 @@ onMounted(() => {
         </el-table-column>
 
         <!-- 操作列 -->
-        <el-table-column label="操作" fixed="right" width="200">
+        <el-table-column label="操作" fixed="right" >
           <template #default="scope">
             <el-button
               size="small"

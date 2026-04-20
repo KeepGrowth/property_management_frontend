@@ -16,6 +16,7 @@ import {
 } from 'element-plus'
 import { Search, Plus } from '@element-plus/icons-vue'
 import useNoticeStore from '@/stores/notice.js'
+import formatTime from '../../utils/date.js'
 
 // 1. 定义数据模型
 const noticeList = ref([])
@@ -212,14 +213,14 @@ onMounted(() => {
         :loading="loading"
         header-cell-class-name="bg-gray-50 font-medium text-gray-700"
       >
-        <el-table-column prop="noticeTitle" label="公告标题" min-width="180">
+        <el-table-column prop="noticeTitle" label="公告标题" >
           <template #default="{ row }">
             <el-tooltip :content="row.noticeTitle" placement="top">
               <span class="font-medium text-blue-600 hover:text-blue-800 cursor-pointer">{{ row.noticeTitle }}</span>
             </el-tooltip>
           </template>
         </el-table-column>
-        <el-table-column prop="noticeContent" label="公告内容" min-width="180">
+        <el-table-column prop="noticeContent" label="公告内容" >
           <template #default="{ row }">
             <el-tooltip :content="row.noticeContent" placement="top">
               <span class="font-medium hover:text-blue-800 cursor-pointer">{{ row.noticeContent }}</span>
@@ -227,7 +228,7 @@ onMounted(() => {
           </template>
         </el-table-column>
 
-        <el-table-column prop="noticeType" label="类型" width="100">
+        <el-table-column prop="noticeType" label="类型" >
           <template #default="{ row }">
             <el-tag
               :type="row.noticeType === 1 ? 'success' : row.noticeType === 2 ? 'warning' : 'danger'"
@@ -239,15 +240,18 @@ onMounted(() => {
           </template>
         </el-table-column>
 
-        <el-table-column prop="publishTime" label="发布时间" width="160" align="center" />
+        <el-table-column prop="publish_time" label="发布时间"  align="center" />
+        <template #defult="scope">
+          {{formatTime(scope.row.publish_time)}}
+        </template>
 
-        <el-table-column prop="status" label="状态" width="180" align="center">
+        <el-table-column prop="status" label="状态"  align="center">
           <template #default="{ row }">
             <el-tag :type="row.status===1?'success':'warning'">{{ row.status===1?'启用':'禁用' }}</el-tag>
           </template>
         </el-table-column>
 
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作"  fixed="right">
           <template #default="{ row }">
             <el-button size="small" type="primary" @click="openEditDialog(row)">编辑</el-button>
             <el-button size="small" type="danger" @click="handleDelete(row.id)">删除</el-button>
