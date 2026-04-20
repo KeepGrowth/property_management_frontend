@@ -3,7 +3,7 @@ import useUserStore from '@/stores/user.js'
 import { ElMessage, ElNotification } from 'element-plus'
 // 开发环境：本地Flask地址 | 生产环境：运行npm run build的时候自动替换为线上接口地址
 const baseURL = process.env.NODE_ENV === 'development'
-  ? 'http://localhost:8888'  // 开发环境-本地地址
+  ? 'http://127.0.0.1:8888'  // 开发环境-本地地址
   : 'http://192.168.1.86:8888' // 生产环境-线上地址（替换成你的真实地址）
 
 
@@ -45,16 +45,16 @@ instance.interceptors.request.use(
 // 3. 强烈建议添加响应拦截器 (处理 401 过期)
 instance.interceptors.response.use(
   (response) => {
-    if (response.data.code ===200){
+    if (response.data.code === 200) {
       return response.data
-    }else if (response.data.code === 401){
+    } else if (response.data.code === 401) {
       ElNotification.error({
-        noticeTitle:'凭证过期',
-        message:'用户凭证过期，请重新登录。'
+        noticeTitle: '凭证过期',
+        message: '用户凭证过期，请重新登录。'
       })
     }
 
-  },
+  }
 )
 
 // 导出配置完成的axios实例
