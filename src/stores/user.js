@@ -20,12 +20,12 @@ export const useUserStore = defineStore('user', () => {
   async function login(loginForm) {
 
     const res = await api.post('/auth/login', loginForm)
-    if (res.code === 200) {
+    if (res?.code === 200) {
       token.value = res.data.token
       userInfo.value = res.data.user
       return res
     } else {
-      return null
+      return res
     }
 
   }

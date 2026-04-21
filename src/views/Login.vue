@@ -45,15 +45,15 @@ const handleLogin = () => {
         ElMessage.success('登录成功！')
         router.push('/home/index')
       } else {
-        ElMessage.error('登录失败,请检查账号密码')
+        ElMessage.error(res?.msg)
         loading.value = false
       }
     } else {
       ElMessage.error('请检查输入信息')
     }
+    loading.value = false
   })
 }
-
 
 
 // 密码确认校验规则

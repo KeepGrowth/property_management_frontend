@@ -2,9 +2,12 @@ import axios from 'axios'
 import useUserStore from '@/stores/user.js'
 import { ElMessage, ElNotification } from 'element-plus'
 // 开发环境：本地Flask地址 | 生产环境：运行npm run build的时候自动替换为线上接口地址
+// const baseURL = process.env.NODE_ENV === 'development'
+//   ? 'https://859707243.xyz:21351'  // 开发环境-本地地址
+//   : 'https://859707243.xyz:21351' // 生产环境-线上地址（替换成你的真实地址）
 const baseURL = process.env.NODE_ENV === 'development'
-  ? 'https://859707243.xyz:21351'  // 开发环境-本地地址
-  : 'https://859707243.xyz:21351' // 生产环境-线上地址（替换成你的真实地址）
+  ? 'http://localhost:8888'  // 开发环境-本地地址
+  : 'http://localhost:8888' // 生产环境-线上地址（替换成你的真实地址）
 
 
 // 1. 创建axios实例（只做基础配置，不在headers中写死Token）
@@ -18,7 +21,6 @@ const instance = axios.create({
 instance.interceptors.request.use(
   (config) => {
     // 1. 更精确的排除逻辑 (使用正则或完整路径匹配)
-    // 假设 config.url 可能是相对路径，需要根据 baseURL 组合判断，或者直接判断 config.url
     const noNeedTokenUrls = ['/auth/login', '/auth/register']
     const isNoNeedToken = noNeedTokenUrls.some(url => config.url.endsWith(url))
 
