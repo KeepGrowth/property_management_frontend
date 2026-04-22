@@ -12,10 +12,11 @@ import {
   ElFormItem,
   ElTag,
   ElMessageBox,
-  ElMessage, ElPagination
+  ElMessage, ElPagination, ElNotification
 } from 'element-plus'
 import { Search, Plus, Download, Refresh, Check } from '@element-plus/icons-vue'
 import useFeeStore from '@/stores/fee'
+import FeeModal from '@/views/Property/component/FeeModal.vue'
 
 // --- 1. 类型定义 ---
 type BillStatus = 1 | 2
@@ -103,10 +104,37 @@ const handlePay = (row: FeeBill) => {
   })
 }
 
-// 导出Excel
-const handleExport = () => {
-  ElMessage.info('正在导出账单数据...')
+const showModal = ref(false)
+const currentBill = ref()
+const openFeeModal = (form: FeeBill) => {
+  showModal.value = true
+
 }
+const handleSave = async (form: FeeBill) => {
+  if (form.id) {
+    const res = await feeStore.updateFee(form)
+    if (res.code === 200) {
+      ElNotification.success({
+        title: '成功',
+        message: res.msg
+      })
+    }
+    showModal.value = false
+    await fetchFeeList()
+  } else {
+    // 添加
+    const res = await feeStore.addFee(form)
+    if (res.code === 200) {
+      ElNotification.success({
+        title: '成功',
+        message: res.msg
+      })
+      showModal.value = false
+      await fetchFeeList()
+    }
+  }
+}
+
 
 // --- 5. 生命周期 ---
 onMounted(() => {
@@ -162,6 +190,7 @@ onMounted(() => {
         <div class="flex items-center mt-2 ml-2 space-x-2">
           <el-button type="primary" @click="handleSearch" :icon="Search">查询</el-button>
           <el-button @click="handleReset" :icon="Refresh">重置</el-button>
+          <el-button @click="openFeeModal" type="success" :icon="Plus">添加账单</el-button>
         </div>
       </el-form>
     </el-card>
@@ -176,19 +205,19 @@ onMounted(() => {
         stripe
       >
         <!-- 选择框 -->
-        <el-table-column type="selection"  align="center" />
+        <el-table-column type="selection" align="center" />
 
         <!-- 账单号 -->
-        <el-table-column prop="billNo" label="账单号"  />
+        <el-table-column prop="billNo" label="账单号" />
 
         <!-- 房屋信息 -->
-        <el-table-column prop="houseId" label="房屋信息(Id)"  />
+        <el-table-column prop="houseId" label="房屋信息(Id)" />
 
         <!-- 业主信息 -->
-        <el-table-column prop="ownerId" label="业主ID"  />
+        <el-table-column prop="ownerId" label="业主ID" />
 
         <!-- 费用类型 -->
-        <el-table-column prop="feeType" label="类型" >
+        <el-table-column prop="feeType" label="类型">
           <template #default="scope">
             <el-tag
               :type="scope.row.feeType==='1'?'primary':'warning'"
@@ -199,7 +228,7 @@ onMounted(() => {
         </el-table-column>
 
         <!-- 金额 -->
-        <el-table-column prop="feeAmount" label="金额(元)"  align="right">
+        <el-table-column prop="feeAmount" label="金额(元)" align="right">
           <template #default="scope">
             <span class="font-medium text-lg text-gray-900">¥{{ scope.row.feeAmount.toFixed(2) }}</span>
           </template>
@@ -225,7 +254,7 @@ onMounted(() => {
         </el-table-column>
 
         <!-- 操作 -->
-        <el-table-column label="操作" fixed="right" >
+        <el-table-column label="操作" fixed="right">
           <template #default="scope">
             <el-button
               size="small"
@@ -261,6 +290,12 @@ onMounted(() => {
         @current-change="fetchFeeList"
       />
     </div>
+
+    <fee-modal
+      v-model="showModal"
+      :initialData="currentBill"
+      @submit="handleSave"
+    />
   </div>
 </template>
 

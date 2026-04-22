@@ -48,10 +48,33 @@ export const useFeeStore = defineStore('fee', () => {
     }
   }
 
+  // 更新账单
+  async function updateFee(feeForm) {
+    try {
+      const cleanParams = cleanObject(feeForm)
+      const res = await api.put('/fee-bill', cleanParams)
+      return res
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  }
+
+  async function addFee(feeForm) {
+    try {
+      const cleanParams = cleanObject(feeForm)
+      const res = await api.post('/fee-bill', cleanParams)
+      return res
+    } catch (error) {
+      throw error.response?.data || error
+    }
+  }
+
   return {
     getUserFeeList,
     payFee,
-    queryAllFeeList
+    queryAllFeeList,
+    addFee,
+    updateFee
   }
 }, {
   persist: true
