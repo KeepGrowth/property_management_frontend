@@ -1,13 +1,11 @@
 import axios from 'axios'
 import useUserStore from '@/stores/user.js'
 import { ElMessage, ElNotification } from 'element-plus'
-// 开发环境：本地Flask地址 | 生产环境：运行npm run build的时候自动替换为线上接口地址
-// const baseURL = process.env.NODE_ENV === 'development'
-//   ? 'https://859707243.xyz:21351'  // 开发环境-本地地址
-//   : 'https://859707243.xyz:21351' // 生产环境-线上地址（替换成你的真实地址）
-const baseURL = process.env.NODE_ENV === 'development'
-  ? 'http://localhost:8888'  // 开发环境-本地地址
-  : 'http://localhost:8888' // 生产环境-线上地址（替换成你的真实地址）
+// 生产环境和开发环境请求不同API。
+const baseURL =
+  import.meta.env.DEV
+    ? 'http://localhost:8080' // 开发环境
+    : 'https://859707243.xyz:21351' // 生产环境
 
 
 // 1. 创建axios实例（只做基础配置，不在headers中写死Token）
